@@ -1,0 +1,18 @@
+# Llaves y credenciales: nunca al repositorio (van en GitHub > Settings > Secrets)
+*.pem
+*.key
+*.ppk
+id_rsa*
+id_ed25519*
+id_ecdsa*
+known_hosts
+.env
+.env.*
+
+# Sistema y editores
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+node_modules/

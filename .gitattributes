@@ -1,0 +1,7 @@
+# Scripts y workflows siempre con LF (un CRLF rompe bash en GitHub Actions).
+* text=auto eol=lf
+
+# El sitio se guarda y se sube byte por byte, tal cual se commitea.
+# (hero-scene.js tiene saltos CRLF dentro de sus shaders; scripts/check.mjs avisa
+# si un cambio de saltos de linea rompe el hash CSP del script en linea.)
+public/** -text
