@@ -1,0 +1,69 @@
+name: Publicar en el hosting
+
+# Cada push a main (por ejemplo al hacer merge de un PR) sube public/ al hosting por SFTP.
+# Tambien se puede correr a mano desde Actions, con la opcion de solo probar.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Solo probar la conexion y mostrar que se subiria, sin subir nada
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publicar-hosting
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: produccion
+      url: ${{ vars.SITE_URL || 'https://enterprisesoc.lat' }}
+    env:
+      SITE_URL: ${{ vars.SITE_URL || 'https://enterprisesoc.lat' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Revisar antes de subir
+        run: |
+          node scripts/check.mjs
+          php -l public/contact.php
+
+      - name: Instalar lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Subir por SFTP
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          REMOTE_PATH: ${{ secrets.REMOTE_PATH }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
+        run: bash scripts/deploy.sh
+
+      - name: Verificar el sitio publicado
+        if: ${{ !inputs.dry_run }}
+        run: |
+          url="${SITE_URL%/}"
+          fallas=0
+          for f in public/*.html; do
+            name="$(basename "$f" .html)"
+            case "$name" in index) path="/" ;; 404) path="/404.html" ;; *) path="/$name" ;; esac
+            ok=0
+            for intento in 1 2 3 4 5; do
+              if curl -fsS "$url$path?deploy=$GITHUB_SHA" -o live.html && cmp -s live.html "$f"; then ok=1; break; fi
+              sleep 6
+            done
+            if [ "$ok" = 1 ]; then echo "ok  $path"; else echo "::error::$url$path no coincide con $f"; fallas=1; fi
+          done
+          code="$(curl -s -o /dev/null -w '%{http_code}' "$url/contact.php")"
+          if [ "$code" = 405 ]; then echo "ok  /contact.php (GET 405)"; else echo "::error::/contact.php responde $code, se esperaba 405"; fallas=1; fi
+          exit "$fallas"
