@@ -2,6 +2,9 @@
    Menu, reloj, entradas, titulos, linea de guardia, capturas, contadores, cinta, visor del panel,
    recorrido, alerta que se resuelve, pasar la guardia y formulario. Todo respeta el movimiento reducido.
    Regla: lo que se lee o se toca no se mueve; el movimiento vive en las entradas y en lo decorativo. */
+// html.sx = este script corre. El CSS solo deja las entradas ocultas mientras falte .sx durante 3 s
+// (si el script no llega, el contenido aparece solo). Va primero, antes que cualquier otra cosa.
+document.documentElement.classList.add('sx');
 (function () {
   'use strict';
 
@@ -10,16 +13,61 @@
   const fine = matchMedia('(hover: hover) and (pointer: fine)');
   const nav = document.querySelector('.nav');
 
-  // ---------- Menu (celular y tablet) ----------
+  // Si el script llego tarde (red lenta), la red de seguridad del CSS ya mostro las entradas:
+  // se dejan visibles en el mismo cuadro, sin volver a ocultarlas.
+  if (performance.now() > 2600) {
+    document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('in', 'done'));
+    document.querySelectorAll('.alert-card[data-play]').forEach((el) => el.classList.add('s2'));
+  }
+
+  // ---------- Menu (celular y tablet, hasta 980 px) ----------
+  // Cerrado: fuera del tabulador y del lector (visibility en CSS + inert).
+  // Abierto: el foco entra al primer link y queda dentro de la barra, la pagina no se mueve,
+  // un velo cubre el resto y tocarlo cierra. Escape cierra y devuelve el foco al boton.
   const menuBtn = nav.querySelector('.menu-btn');
-  function setMenu(open) {
+  const menu = nav.querySelector('.nav-links');
+  const mobileMenu = matchMedia('(max-width: 980px)');
+  const outside = [document.querySelector('.skip'), document.querySelector('main'), document.querySelector('footer')].filter(Boolean);
+  const isOpen = () => nav.classList.contains('open');
+  const syncMenuInert = () => { if (menu) menu.inert = mobileMenu.matches && !isOpen(); };
+  function setMenu(open, restoreFocus) {
+    const was = isOpen();
     nav.classList.toggle('open', open);
     menuBtn.setAttribute('aria-expanded', open);
     menuBtn.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+    document.documentElement.classList.toggle('menu-open', open);
+    outside.forEach((el) => { el.inert = open; });
+    syncMenuInert();
+    if (open && !was) {
+      const first = menu && menu.querySelector('a[href]');
+      if (first) first.focus({ preventScroll: true });
+    } else if (!open && was && restoreFocus) {
+      menuBtn.focus({ preventScroll: true });
+    }
   }
-  menuBtn.addEventListener('click', () => setMenu(!nav.classList.contains('open')));
+  // orden del tabulador con el menu abierto: la barra (marca, boton) y despues los links del menu
+  function menuFocusables() {
+    const bar = [...nav.querySelectorAll('a[href], button')].filter((el) => !menu.contains(el));
+    return [...bar, ...menu.querySelectorAll('a[href]')].filter((el) => el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden');
+  }
+  menuBtn.addEventListener('click', () => setMenu(!isOpen()));
   nav.querySelectorAll('.nav-links a').forEach((a) => a.addEventListener('click', () => setMenu(false)));
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && nav.classList.contains('open')) { setMenu(false); menuBtn.focus(); } });
+  // el velo es el ::after de la barra: un toque ahi llega con target = nav
+  nav.addEventListener('click', (e) => { if (e.target === nav && isOpen()) setMenu(false, true); });
+  document.addEventListener('keydown', (e) => {
+    if (!isOpen()) return;
+    if (e.key === 'Escape') { setMenu(false, true); return; }
+    if (e.key !== 'Tab') return;
+    const list = menuFocusables();
+    if (!list.length) return;
+    const i = list.indexOf(document.activeElement);
+    const n = e.shiftKey ? (i <= 0 ? list.length - 1 : i - 1) : (i < 0 || i === list.length - 1 ? 0 : i + 1);
+    e.preventDefault();
+    list[n].focus();
+  });
+  // al pasar a escritorio (girar la tablet, agrandar la ventana) el menu se cierra solo
+  mobileMenu.addEventListener('change', () => { if (!mobileMenu.matches && isOpen()) setMenu(false); syncMenuInert(); });
+  syncMenuInert();
 
   // ---------- Reloj de guardia ----------
   const clock = document.querySelector('[data-clock]');
@@ -69,10 +117,12 @@
 
   // ---------- Barra: transparente sobre la zona oscura de arriba, blanca despues ----------
   const top = document.querySelector('.hero, .page-hero, .demo-wrap, .nf');
+  // la 404 es oscura de punta a punta: la barra no pasa nunca a blanca
+  const allDark = document.body.classList.contains('notfound');
   let navSolid = null;
   function updateNav() {
     const limit = top ? top.offsetTop + top.offsetHeight - nav.offsetHeight : 30;
-    const solid = window.scrollY > Math.max(30, limit);
+    const solid = !allDark && window.scrollY > Math.max(30, limit);
     if (solid !== navSolid) { navSolid = solid; nav.classList.toggle('solid', solid); }
     nav.classList.toggle('scrolled', window.scrollY > 24);
   }
@@ -358,7 +408,10 @@
       fields.forEach((f) => markField(f, bad.includes(f)));
       if (bad.length) {
         showError(bad.length === 1 ? 'Revisa el campo marcado.' : 'Revisa los campos marcados.');
-        bad[0].focus();
+        // el campo entero (con su etiqueta) queda a la vista debajo de la barra fija (scroll-padding-top)
+        const box = bad[0].closest('.field') || bad[0];
+        box.scrollIntoView({ block: 'nearest', behavior: reduce.matches ? 'auto' : 'smooth' });
+        bad[0].focus({ preventScroll: true });
         return;
       }
       btn.disabled = true;
@@ -372,11 +425,32 @@
         form.querySelector('[data-done-title]').textContent = name ? `Listo, ${name}.` : 'Listo.';
         form.classList.add('sent');
         const done = form.querySelector('.form-done');
-        done.setAttribute('tabindex', '-1'); done.focus({ preventScroll: false });
+        done.setAttribute('tabindex', '-1');
+        // el formulario se achica: se lleva a la vista entero (con el tilde) y despues recibe el foco
+        form.scrollIntoView({ block: 'nearest', behavior: reduce.matches ? 'auto' : 'smooth' });
+        done.focus({ preventScroll: true });
       } catch (_) {
         showError('No pudimos enviar el formulario. Escríbenos a <a href="mailto:contacto@enterprisesoc.lat?subject=Quiero%20una%20demo%20de%20Enterprise%20SOC">contacto@enterprisesoc.lat</a> y coordinamos la demo.');
       } finally { btn.disabled = false; btn.textContent = label; }
     });
+  }
+
+  // ---------- Diagramas con SMIL (paquetes que viajan por los cables) ----------
+  // El CSS no alcanza a SMIL: se pausan con movimiento reducido, fuera de pantalla y con la pestaña oculta.
+  const smil = [...document.querySelectorAll('svg')].filter((s) => !s.ownerSVGElement && typeof s.pauseAnimations === 'function' && s.querySelector('animate, animateMotion, animateTransform, set'));
+  if (smil.length) {
+    const smilSeen = new WeakMap();
+    const syncSmil = (s) => {
+      const run = smilSeen.get(s) && !document.hidden && !reduce.matches;
+      if (run) { if (s.animationsPaused()) s.unpauseAnimations(); } else if (!s.animationsPaused()) s.pauseAnimations();
+    };
+    smil.forEach((s) => s.pauseAnimations());
+    const smilIO = new IntersectionObserver((entries) => {
+      for (const e of entries) { smilSeen.set(e.target, e.isIntersecting); syncSmil(e.target); }
+    }, { rootMargin: '10% 0px' });
+    smil.forEach((s) => smilIO.observe(s));
+    document.addEventListener('visibilitychange', () => smil.forEach(syncSmil));
+    reduce.addEventListener('change', () => smil.forEach(syncSmil));
   }
 
   // ---------- Scroll y tamaño ----------
