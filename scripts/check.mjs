@@ -2,10 +2,12 @@
 //  1. Links y recursos internos (href, src, srcset, og:image, url() del CSS) que no existen.
 //  2. Scripts en linea cuyo hash no esta en el CSP del servidor (el navegador los bloquearia).
 //  3. Llaves privadas o archivos de llaves dentro de public/.
+//  4. Paginas cuyo CSS en linea no coincide con assets/css/site.css.
 // Uso: node scripts/check.mjs [carpeta]   (por defecto public)
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { join, relative, dirname, extname, posix } from 'node:path';
+import { join, relative, extname, posix } from 'node:path';
+import { syncPages } from './build.mjs';
 
 const ROOT = process.argv[2] || 'public';
 const SITE = 'https://enterprisesoc.lat';
@@ -93,6 +95,14 @@ for (const f of todos) {
       if ((esInterna(u) || esRelativa(u)) && !existeRuta(u, rel)) err(rel, `no existe ${u}`);
     }
   }
+}
+
+// 4. El CSS en linea de cada pagina tiene que ser el de assets/css/site.css (ver scripts/build.mjs).
+try {
+  const viejas = syncPages(ROOT);
+  if (viejas.length) err(viejas.join(', '), 'el <style> no coincide con assets/css/site.css; corre node scripts/build.mjs');
+} catch (e) {
+  err('assets/css/site.css', e.message);
 }
 
 if (errores.length) {
