@@ -1,0 +1,28 @@
+/* Portada (index.html): ajustes propios de la pagina. Todo va bajo .home, porque este archivo
+   se copia en linea en todas las paginas (scripts/build.mjs). */
+
+/* Cinta "EN VIVO · DEMO": en celulares queda la etiqueta corta "DEMO" (antes se ocultaba entera) */
+@media (max-width:640px){
+  .home .ticker-label{display:flex;padding-right:40px;font-size:12px;letter-spacing:.12em;background:linear-gradient(90deg,rgba(9,15,28,1) 0,rgba(9,15,28,1) calc(100% - 32px),rgba(9,15,28,0) 100%)}
+  .home .ticker-label .tl-live{display:none}
+}
+
+/* Boton de pausa de la cinta: fondo opaco para que el texto que pasa por detras no se mezcle con el icono */
+.home .ticker .fx-mq-b{background:rgba(9,15,28,.94);border-color:rgba(148,163,184,.34)}
+
+/* El panel: acceso al recorrido en video, debajo de la leyenda */
+.home #pantalla .tour{margin-top:22px;display:flex;justify-content:center}
+
+/* Que vigila: la palabra que rota se lee como parte del texto, un poco mas marcada */
+.home #vigila .rot{color:var(--text-primary);font-weight:600}
+
+/* Como empieza: la direccion del paso 1 vuelve a 8 px (la pastilla se ensancho en el SVG) */
+.home #como .art .t.sm{font-size:8px}
+
+/* Alto reservado de #pantalla para content-visibility (site.css): +68 px por la fila del recorrido.
+   Mismo orden de cortes que site.css para que cada uno pise al suyo. */
+.home #pantalla{--h:1353px}
+@media (min-width:1800px){.home #pantalla{--h:1518px}}
+@media (max-width:1100px){.home #pantalla{--h:1158px}}
+@media (max-width:900px){.home #pantalla{--h:988px}}
+@media (max-width:640px){.home #pantalla{--h:888px}}

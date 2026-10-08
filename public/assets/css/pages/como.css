@@ -1,0 +1,30 @@
+/* Enterprise SOC: ajustes de como-funciona.html, version 16.
+   Este archivo se copia en linea en TODAS las paginas (scripts/build.mjs): cada regla va
+   colgada de body.como para no tocar las demas. Sin JS todo se ve; el movimiento respeta
+   prefers-reduced-motion (fx.js deja cada efecto en su estado final). */
+
+/* ---------- Cabecera: la grilla vive arriba a la derecha, lejos del titulo ---------- */
+.como .page-hero-bg{--fx-mask:radial-gradient(60% 90% at 86% 24%,#000 6%,transparent 72%)}
+
+/* ---------- Los pasos ----------
+   Con la linea de luz de fx.js (trace) la raya fija de site.css sobra. En celulares los pasos van
+   en una columna con el numero a la izquierda: la linea baja por ese margen y no cruza el texto. */
+.como .timeline:has(>.fx-tr:not([hidden]))::before{display:none}
+@media (max-width:640px){
+  .como .timeline{row-gap:30px}
+  .como .timeline li{padding:5px 0 0 56px}
+  .como .timeline::before{display:block;left:18px;right:auto;top:18px;bottom:0;width:1px;height:auto;background:linear-gradient(180deg,var(--accent),var(--line-strong) 70%,transparent)}
+}
+
+/* ---------- Que necesitas: "Opcional" como etiqueta ---------- */
+.como .needs em{display:inline-block;padding:2px 8px;border:1px solid var(--line-strong);border-radius:99px;line-height:1.5;vertical-align:2px}
+
+/* ---------- Proveedores de IT ----------
+   La direccion se corta en el punto (<wbr>) y solo si no entra; el punto de estado va dentro
+   de la direccion para no quedar solo en una linea. La cantidad de servidores pasa abajo si no hay lugar. */
+.como .msp-list li{gap:4px 16px;overflow-wrap:normal}
+.como .msp-list .host{position:relative;min-width:0;padding-left:20px}
+.como .msp-list .dot{position:absolute;left:0;top:calc(.8em - 4px)}
+
+/* ---------- Preguntas: acceso al recorrido en video, debajo del correo ---------- */
+.como .faq-tour{margin-top:26px}

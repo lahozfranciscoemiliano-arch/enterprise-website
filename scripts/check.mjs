@@ -100,7 +100,7 @@ for (const f of todos) {
 // 4. El CSS en linea de cada pagina tiene que ser el de assets/css/site.css (ver scripts/build.mjs).
 try {
   const viejas = syncPages(ROOT);
-  if (viejas.length) err(viejas.join(', '), 'el <style> no coincide con assets/css/site.css; corre node scripts/build.mjs');
+  if (viejas.length) err(viejas.join(', '), 'el <style> no coincide con las fuentes de assets/css; corre node scripts/build.mjs');
 } catch (e) {
   err('assets/css/site.css', e.message);
 }

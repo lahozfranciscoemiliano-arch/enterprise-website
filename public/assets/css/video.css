@@ -1,0 +1,88 @@
+/* Enterprise SOC: reproductores de video (assets/js/video.js), version 16.
+   .vthumb y .vchip abren el dialogo .vdlg; .vpreview es la vista previa (mouse encima o toque).
+   Las cajas reservan su lugar (img con width/height o aspect-ratio): CLS 0. */
+
+/* Boton de reproduccion: circulo de vidrio con triangulo; .vbadge = duracion */
+.vplay{position:absolute;inset:0;z-index:1;width:64px;height:64px;margin:auto;border-radius:50%;background:#0f172a99;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 0 0 1px #ffffff47,0 0 0 8px #e07b3a33;transition:transform .35s var(--ease-out),opacity .25s}
+.vplay::before{content:"";position:absolute;inset:0;margin:auto;width:20px;height:23px;transform:translateX(2px);background:#fff;clip-path:polygon(0 0,100% 50%,0 100%)}
+.vbadge{display:inline-block;padding:5px 8px;border:1px solid #fff3;border-radius:99px;background:#050810a8;color:#F8FAFC;font:500 12px/1 var(--f-mono)}
+
+/* Miniatura (poster 16:9 con texto abajo) y variante chica .vchip */
+.vthumb{position:relative;display:block;width:100%;padding:0;overflow:hidden;border:1px solid var(--line-strong);border-radius:16px;background:#0B1222;color:#F8FAFC;font:inherit;text-align:left;text-decoration:none;cursor:pointer;box-shadow:var(--shadow);isolation:isolate}
+.vthumb img{display:block;width:100%;height:auto}
+.vthumb::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 50%,#050810cc)}
+.vthumb-txt{position:absolute;left:16px;right:16px;bottom:14px;z-index:1;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font-weight:600;font-size:clamp(15px,1.4vw,17px);text-shadow:0 1px 8px #050810}
+.vchip{display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:6px 16px 6px 6px;border:1px solid var(--line-strong);border-radius:99px;background:var(--glass);color:var(--text-primary);font:600 15px/1.2 var(--f-body);text-decoration:none;cursor:pointer}
+.vchip .vplay{position:relative;flex:none;width:32px;height:32px;margin:0;background:var(--btn);box-shadow:none}
+.vchip .vplay::before{width:10px;height:12px;transform:translateX(1px)}
+.vthumb:focus-visible,.vchip:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+@media (hover:hover) and (pointer:fine){
+  .vthumb:hover .vplay,.vpreview-btn:hover .vplay{transform:scale(1.08);box-shadow:0 0 0 1px #fff6,0 0 0 12px #e07b3a47}
+}
+
+/* Dialogo: ocupa la ventana (capa superior) y centra la caja; tocar fuera cierra.
+   --vc = alto que no es video (margenes, titulo, capitulos) para que el video entre en la pantalla */
+html.vlock{overflow:hidden;padding-right:var(--vsb,0)}
+.vdlg{--vp:clamp(8px,3vw,32px);position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:var(--vp);border:0;background:none;color:var(--text-primary);overflow:auto;overscroll-behavior:contain}
+.vdlg[open]{display:grid;place-items:center}
+.vdlg::backdrop{background:#050810d1;backdrop-filter:blur(6px)}
+.vdlg-box{--vc:calc(2*var(--vp) + 80px);display:grid;grid-template-columns:minmax(0,1fr);gap:10px;width:min(100%,1120px,(100vh - var(--vc))*16/9);width:min(100%,1120px,(100dvh - var(--vc))*16/9);padding:10px;border:1px solid var(--line-strong);border-radius:18px;background:#0B1222;box-shadow:0 40px 120px -30px #000}
+.vdlg-box.has-ch{--vc:calc(2*var(--vp) + 144px)}
+.vdlg-head{display:flex;align-items:center;gap:12px;padding-left:6px}
+.vdlg-t{flex:1;min-width:0;margin:0;font:600 clamp(16px,1.6vw,19px)/1.25 var(--f-display)}
+.vdlg-x{display:grid;place-items:center;flex:none;width:44px;height:44px;padding:0;border:1px solid var(--line-strong);border-radius:50%;background:var(--surface);color:inherit;cursor:pointer}
+.vdlg-x svg{width:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.vdlg-stage{position:relative;justify-self:center;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:10px;background:#000}
+.vdlg-stage.is-p{width:min(100%,(100vh - var(--vc))*9/16);width:min(100%,(100dvh - var(--vc))*9/16)}
+.vdlg-stage video{display:block;width:100%;height:100%;background:#000}
+.vdlg-err{position:absolute;inset:0;display:grid;place-items:center;margin:0;padding:24px;background:#050810d9;color:#F8FAFC;text-align:center}
+.vdlg [hidden],.vpreview [hidden]{display:none!important}
+.vspin{position:absolute;inset:0;width:48px;height:48px;margin:auto}
+.vspin,.is-wait .vplay::after{border:3px solid #ffffff38;border-top-color:#E07B3A;border-radius:50%;animation:vspin .8s linear infinite}
+
+/* Capitulos: fila con desplazamiento lateral; al costado en escritorio y en horizontal bajo */
+.vdlg-ch{min-height:53px}
+.vdlg-ch ol{position:relative;display:flex;gap:6px;margin:0;padding:0 0 2px;list-style:none;overflow:auto;scroll-snap-type:x proximity}
+.vdlg-ch li{flex:none;scroll-snap-align:start}
+.vch{position:relative;display:grid;gap:4px;width:100%;min-height:44px;padding:7px 12px 9px;overflow:hidden;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--text-secondary);font:500 14px/1.2 var(--f-body);text-align:left;white-space:nowrap;cursor:pointer}
+.vch b{font:500 12px/1 var(--f-mono);color:var(--text-muted)}
+.vch i{position:absolute;inset:auto 0 0;height:3px;background:var(--accent);transform:scaleX(var(--p,0));transform-origin:0;transition:transform .25s linear}
+.vch:hover,.vch[aria-current]{border-color:var(--accent);color:var(--text-primary)}
+.vch[aria-current]{background:var(--accent-soft)}
+.vdlg-x:focus-visible,.vch:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (min-width:1101px){.vdlg-box.has-ch{--vc:calc(2*var(--vp) + 80px);grid-template-columns:minmax(0,1fr) 220px;grid-template-areas:"h h" "s c";width:min(100%,1600px,(100dvh - var(--vc))*16/9 + 252px)}}
+@media (orientation:landscape) and (max-height:560px){
+  .vdlg{--vp:8px}
+  .vdlg-box.has-ch{--vc:40px;grid-template-columns:minmax(0,1fr) 176px;grid-template-areas:"s h" "s c";grid-template-rows:auto 1fr;width:min(100%,(100dvh - var(--vc))*16/9 + 208px)}
+}
+@media (min-width:1101px),(orientation:landscape) and (max-height:560px){
+  .has-ch .vdlg-head{grid-area:h}
+  .has-ch .vdlg-stage{grid-area:s}
+  .has-ch .vdlg-ch{grid-area:c;position:relative}
+  .has-ch .vdlg-ch ol{position:absolute;inset:0;flex-direction:column;scroll-snap-type:y proximity}
+}
+
+/* Vista previa: el poster da la caja; video, boton (play al centro, pausa en la esquina) y estados encima */
+.vpreview{margin:0}
+.vpreview-m{position:relative;overflow:hidden;border:1px solid var(--line-strong);border-radius:16px;background:#0B1222;isolation:isolate}
+.vpreview-m>img{display:block;width:100%;height:auto}
+.vpreview-m>video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s}
+.is-v .vpreview-m>video{opacity:1}
+.vpreview-btn{position:absolute;inset:0;z-index:1;width:100%;padding:0;border:0;border-radius:inherit;background:none;cursor:pointer;visibility:hidden}
+.vx .vpreview-btn{visibility:visible}
+.vpreview-btn .vbadge{position:absolute;right:12px;bottom:12px}
+.vpreview-btn::after{content:"";position:absolute;left:12px;bottom:12px;width:44px;height:44px;border-radius:50%;background:linear-gradient(90deg,#0000 15px,#fff 0 20px,#0000 0 24px,#fff 0 29px,#0000 0) center/100% 16px no-repeat,#050810a8;opacity:0;transition:opacity .25s}
+.is-on .vplay{opacity:0;transform:scale(.85)}
+.is-on .vpreview-btn::after{opacity:1}
+.is-wait .vplay::after{content:"";position:absolute;inset:-6px}
+.vpreview-btn:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.vmsg{position:absolute;inset:12px 12px auto;z-index:2;margin:0;padding:8px 12px;border-radius:10px;background:#050810db;color:#F8FAFC;font-size:14px}
+
+@keyframes vspin{to{transform:rotate(1turn)}}
+@keyframes vfade{from{opacity:0}}
+@media (prefers-reduced-motion:no-preference){.vdlg[open]::backdrop{animation:vfade .3s}}
+@media (prefers-reduced-motion:reduce){
+  .vplay,.vpreview-m>video,.vpreview-btn::after,.vch i{transition:none}
+  .vspin,.is-wait .vplay::after{animation:none;border-color:#E07B3A #fff3}
+}
+@media (forced-colors:active){.vplay::before,.vch i{background:CanvasText}}
