@@ -891,8 +891,12 @@ html.fx [data-fx~="cut"]:not(.in) .fx-p{transform:translateY(112%)}
 @supports (animation-timeline:view()){.fx-swn{animation:fx-p linear both;animation-timeline:view();animation-range:cover 12% cover 52%}}
 @keyframes fx-p{from{--fx-p:0}to{--fx-p:1}}
 .fx-od{display:inline-flex;vertical-align:top;font-variant-numeric:tabular-nums}
-.fx-oc{display:inline-block;height:1.15em;height:1lh;overflow:hidden;clip-path:inset(0)}
-.fx-os{display:block;white-space:pre;text-align:center;transform:translateY(calc(var(--d,0) * -100% / 13));transition:transform 1.9s cubic-bezier(.55,0,.15,1);background-image:var(--fx-bg,none);background-size:100% calc(100% / 13);-webkit-background-clip:text;background-clip:text}
+.fx-oc{display:inline-grid;grid-template-columns:1fr;height:1lh;overflow:hidden;transition:grid-template-columns .8s var(--ease-in-out),opacity .6s}
+@supports not (height:1lh){.fx-od{line-height:1.15}.fx-oc{height:1.15em}}
+.fx-oc.fx-z{grid-template-columns:0fr;opacity:0}
+.fx-oc>span{min-width:0;white-space:pre;text-align:center;background-image:var(--fx-bg,none);-webkit-background-clip:text;background-clip:text}
+.fx-os{transform:translateY(calc(var(--d,0) * -10%));transition:transform 1.6s cubic-bezier(.6,0,.2,1);background-size:100% 10%}
+.fx-roll .fx-oc{-webkit-mask-image:linear-gradient(transparent,#000 .12em,#000 calc(100% - .12em),transparent);mask-image:linear-gradient(transparent,#000 .12em,#000 calc(100% - .12em),transparent)}
 :where(.fx-gc){position:relative}
 .fx-gc::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;background:radial-gradient(260px circle at var(--mx,50%) var(--my,0%),rgba(224,123,58,.9),rgba(224,123,58,.14) 45%,transparent 70%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;opacity:0;transition:opacity .4s var(--ease-out)}
 .fx-gc:hover::after,.fx-gc:focus-within::after{opacity:1}

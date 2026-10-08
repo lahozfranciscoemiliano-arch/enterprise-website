@@ -331,36 +331,45 @@ document.documentElement.classList.add('fx');
   };
 
   // ---------- odometer: columnas de digitos que ruedan hasta el valor (el texto final queda para lectores) ----------
-  var ODO = '0123456789 .,';
+  // Alineado a la derecha como un contador: las unidades no se mueven de lugar y las columnas que sobran se cierran.
   C.odometer = {
     pre: 1, t: 0.6,
     prep: function (st) {
       var el = st.el, raw = parseFloat(el.textContent.replace(/[^\d-]/g, ''));
-      var to = num(el, 'to', num(el, 'count', isNaN(raw) ? 0 : raw)), from = num(el, 'from', 0);
-      var nf = attr(el, 'format', 'es-AR') === 'none' ? null : new Intl.NumberFormat(attr(el, 'format', 'es-AR'), { maximumFractionDigits: 0 });
-      var a = nf ? nf.format(from) : String(from), b = nf ? nf.format(to) : String(to), n = Math.max(a.length, b.length);
-      // texto con degradé (background-clip:text): las columnas reciben el mismo fondo, linea por linea
+      var to = num(el, 'to', num(el, 'count', isNaN(raw) ? 0 : raw)), from = num(el, 'from', 0), loc = attr(el, 'format', 'es-AR');
+      var f = function (v) { return loc === 'none' ? String(v) : v.toLocaleString(loc, { maximumFractionDigits: 0 }); };
+      var a = f(from), b = f(to), n = Math.max(a.length, b.length);
+      a = a.padStart(n); b = b.padStart(n);
+      // texto con degrade (background-clip:text): las columnas reciben el mismo fondo, linea por linea
       var src = el, bg = 'none', clip = getComputedStyle(el).webkitTextFillColor === 'rgba(0, 0, 0, 0)';
       for (var j = 0; clip && j < 4 && src && bg === 'none'; j++) { bg = getComputedStyle(src).backgroundImage; if (bg === 'none') src = src.parentElement; }
       el.textContent = '';
-      label(el, b);
+      label(el, b.trim());
       var box = hide(mk('span', 'fx-od', el));
       if (bg !== 'none') { box.style.setProperty('--fx-bg', bg); if (src === el) el.style.backgroundImage = 'none'; }
       st.cols = [];
       for (var i = 0; i < n; i++) {
-        var col = mk('span', 'fx-oc', box), strip = mk('span', 'fx-os', col, ODO.split('').join('\n'));
-        strip.style.setProperty('--d', idx(a[i]));
-        strip.style.transitionDelay = (n - 1 - i) * 90 + 'ms';
-        st.cols.push([strip, idx(b[i])]);
+        var x = a[i], y = b[i], dig = !/[^\d ]/.test(x + y);
+        var col = mk('span', 'fx-oc' + (x === ' ' ? ' fx-z' : ''), box);
+        var s = mk('span', dig ? 'fx-os' : 'fx-ox', col, dig ? '0\n1\n2\n3\n4\n5\n6\n7\n8\n9' : x === ' ' ? y : x);
+        if (dig) s.style.setProperty('--d', +x || 0);
+        col.style.transitionDelay = s.style.transitionDelay = i * 70 + 'ms';
+        st.cols.push([col, s, +y || 0, y === ' ']);
       }
     },
     go: function (st) {
-      st.cols.forEach(function (c) { c[0].style.setProperty('--d', c[1]); });
-      later(st, function () { finish(st); }, 2200 + st.cols.length * 70);
+      st.el.classList.add('fx-roll');
+      odoSet(st, 1);
+      later(st, function () { st.el.classList.remove('fx-roll'); finish(st); }, 1900 + st.cols.length * 70);
     },
-    fin: function (st) { if (st.cols) st.cols.forEach(function (c) { c[0].style.setProperty('--d', c[1]); }); }
+    fin: function (st) { if (st.cols) odoSet(st, 0); st.el.classList.remove('fx-roll'); }
   };
-  function idx(ch) { var i = ch == null ? 10 : ODO.indexOf(ch); return i < 0 ? 10 : i; }
+  function odoSet(st, slow) {
+    st.cols.forEach(function (c, i) {
+      if (c[3] && slow) c[0].style.transitionDelay = i * 70 + 700 + 'ms';
+      c[0].classList.toggle('fx-z', c[3]); c[1].style.setProperty('--d', c[2]);
+    });
+  }
 
   // ---------- glow-card: luz que sigue al mouse por el borde; en tactil, un barrido al entrar ----------
   var sweepIO;

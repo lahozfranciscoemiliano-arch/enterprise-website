@@ -38,8 +38,12 @@ html.fx [data-fx~="cut"]:not(.in) .fx-p{transform:translateY(112%)}
 
 /* odometer: una columna por digito; hereda el degradé del texto si lo hay */
 .fx-od{display:inline-flex;vertical-align:top;font-variant-numeric:tabular-nums}
-.fx-oc{display:inline-block;height:1.15em;height:1lh;overflow:hidden;clip-path:inset(0)}
-.fx-os{display:block;white-space:pre;text-align:center;transform:translateY(calc(var(--d,0) * -100% / 13));transition:transform 1.9s cubic-bezier(.55,0,.15,1);background-image:var(--fx-bg,none);background-size:100% calc(100% / 13);-webkit-background-clip:text;background-clip:text}
+.fx-oc{display:inline-grid;grid-template-columns:1fr;height:1lh;overflow:hidden;transition:grid-template-columns .8s var(--ease-in-out),opacity .6s}
+@supports not (height:1lh){.fx-od{line-height:1.15}.fx-oc{height:1.15em}}
+.fx-oc.fx-z{grid-template-columns:0fr;opacity:0}
+.fx-oc>span{min-width:0;white-space:pre;text-align:center;background-image:var(--fx-bg,none);-webkit-background-clip:text;background-clip:text}
+.fx-os{transform:translateY(calc(var(--d,0) * -10%));transition:transform 1.6s cubic-bezier(.6,0,.2,1);background-size:100% 10%}
+.fx-roll .fx-oc{-webkit-mask-image:linear-gradient(transparent,#000 .12em,#000 calc(100% - .12em),transparent);mask-image:linear-gradient(transparent,#000 .12em,#000 calc(100% - .12em),transparent)}
 
 /* glow-card: luz cobre en el borde que sigue al mouse; en tactil un barrido al entrar */
 :where(.fx-gc){position:relative}
