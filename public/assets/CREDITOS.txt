@@ -1,0 +1,72 @@
+Enterprise SOC - Créditos de los efectos de movimiento (assets/js/fx.js y la hoja fx.css)
+=====================================================================================
+
+Todo el código de fx.js y de fx.css es una implementación original, escrita desde cero en
+JavaScript y CSS sin dependencias. No se copió código de los componentes que se nombran abajo:
+se tomaron como referencia visual del efecto ("inspirado en", no "copiado de"). Los componentes
+originales están escritos en React; esta versión no usa React ni ninguna biblioteca externa.
+
+Las licencias se transcriben tal como figuran en 21st.dev al momento de la consulta (octubre de 2026).
+En los componentes de Aceternity UI, 21st.dev lista "MIT", pero Aceternity publica además su propia
+licencia (Aceternity License); por eso en esos casos solo se tomó la idea del efecto.
+
+Componente fx      Referencia
+-----------------  ------------------------------------------------------------------------------
+blur-in            Inspirado en Blur Fade de Dillion Verma (Magic UI)
+                   (https://21st.dev/@dillionverma/components/blur-fade), licencia listada: MIT.
+cut                Inspirado en Vertical Cut Reveal de Daniel Petho (Fancy Components)
+                   (https://21st.dev/@danielpetho/components/vertical-cut-reveal), licencia listada: MIT.
+scramble           Inspirado en Text Scramble de Julien Thibeaut / ibelick (Motion Primitives)
+                   (https://21st.dev/@ibelick/components/text-scramble), licencia listada: MIT;
+                   y en Hyper Text de Dillion Verma (Magic UI)
+                   (https://21st.dev/@dillionverma/components/hyper-text), licencia listada: MIT.
+rotate             Inspirado en Text Rotate de Daniel Petho (Fancy Components)
+                   (https://21st.dev/@danielpetho/components/text-rotate), licencia listada: MIT.
+scroll-words       Inspirado en Text Reveal de Dillion Verma (Magic UI)
+                   (https://21st.dev/@dillionverma/components/text-reveal), licencia listada: MIT.
+odometer           Inspirado en Number Flow de Maxwell Barvian
+                   (https://21st.dev/@barvian/components/number-flow), licencia listada: MIT.
+glow-card          Inspirado en Magic Card de Dillion Verma (Magic UI)
+                   (https://21st.dev/@dillionverma/components/magic-card), licencia listada: MIT.
+beam-border        Inspirado en Border Beam de Dillion Verma (Magic UI)
+                   (https://21st.dev/@dillionverma/components/border-beam), licencia listada: MIT.
+brillo de          Inspirado en Shimmer Button de Dillion Verma (Magic UI)
+.btn.primary       (https://21st.dev/@dillionverma/components/shimmer-button), licencia listada: MIT.
+magnetic           Inspirado en Magnetic de ibelick (Motion Primitives)
+                   (https://21st.dev/@ibelick/components/magnetic), licencia listada: MIT.
+tilt               Inspirado en Tilt de ibelick (Motion Primitives)
+                   (https://21st.dev/@ibelick/components/tilt), licencia listada: MIT.
+stars              Inspirado en Shooting Stars y Stars Background de Manu Arora (Aceternity UI)
+                   (https://21st.dev/@manuarora700/components/shooting-stars y
+                   https://21st.dev/@manuarora700/components/stars-background), licencia listada: MIT
+                   (ver la nota sobre Aceternity UI).
+grid               Inspirado en Flickering Grid de Dillion Verma (Magic UI)
+                   (https://21st.dev/@dillionverma/components/flickering-grid), licencia listada: MIT.
+beams              Inspirado en Background Beams de Manu Arora (Aceternity UI)
+                   (https://21st.dev/@manuarora700/components/background-beams), licencia listada: MIT
+                   (ver la nota sobre Aceternity UI); y en Background Paths de Kokonut
+                   (https://21st.dev/@kokonutd/components/background-paths), licencia listada: MIT.
+trace              Inspirado en Tracing Beam de Manu Arora (Aceternity UI)
+                   (https://21st.dev/@manuarora700/components/tracing-beam), licencia listada: MIT
+                   (ver la nota sobre Aceternity UI).
+stack              Inspirado en Stacking Cards de Daniel Petho (Fancy Components)
+                   (https://21st.dev/@danielpetho/components/stacking-cards), licencia listada: MIT.
+marquee            Inspirado en Marquee de Dillion Verma (Magic UI)
+                   (https://21st.dev/@dillionverma/components/marquee), licencia listada: MIT.
+beam-graph         Inspirado en Animated Beam de Dillion Verma (Magic UI)
+                   (https://21st.dev/@dillionverma/components/animated-beam), licencia listada: MIT.
+arcs               Inspirado en World Map de Manu Arora (Aceternity UI)
+                   (https://21st.dev/@manuarora700/components/world-map), licencia listada: MIT
+                   (ver la nota sobre Aceternity UI). El mapa del AMBA es propio del sitio.
+terminal           Inspirado en Terminal de Dillion Verma (Magic UI)
+                   (https://21st.dev/@dillionverma/components/terminal), licencia listada: MIT.
+feed               Inspirado en Animated List de Dillion Verma (Magic UI)
+                   (https://21st.dev/@dillionverma/components/animated-list), licencia listada: MIT.
+spotlight          Inspirado en Spotlight de Manu Arora (Aceternity UI)
+                   (https://21st.dev/@manuarora700/components/spotlight), licencia listada: MIT
+                   (ver la nota sobre Aceternity UI).
+camera             Sin componente de referencia: idea y código propios (paneo y zoom con
+                   Web Animations sobre las capturas del panel).
+
+Las capturas, el mapa, los textos, los colores y las tipografías son del sitio y no forman parte de
+ningún componente de terceros.

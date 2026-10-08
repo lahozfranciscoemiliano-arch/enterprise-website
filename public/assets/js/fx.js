@@ -21,6 +21,10 @@ document.documentElement.classList.add('fx');
   var C = {}, all = [], S = new WeakMap(), queue = [], uid = 0;
   var nearIO, seeIO, ro, roFn = new WeakMap();
   var NS = 'http://www.w3.org/2000/svg', EASE = 'cubic-bezier(.22,1,.36,1)', INOUT = 'cubic-bezier(.65,0,.35,1)';
+  // alto de la ventana en cache, tomado de los IntersectionObserver (rootBounds): leer innerHeight en el
+  // arranque o dentro de un callback puede forzar un layout completo de la pagina
+  var VH = 0;
+  W.addEventListener('resize', function () { VH = W.innerHeight; }, { passive: true });
   var now = function () { return performance.now(); };
   var clamp = function (v, a, b) { return v < a ? a : v > b ? b : v; };
   var rnd = function (a, b) { return a + Math.random() * (b - a); };
@@ -96,7 +100,8 @@ document.documentElement.classList.add('fx');
     es.forEach(function (e) {
       if (!e.isIntersecting) return;
       nearIO.unobserve(e.target);
-      var r = e.boundingClientRect, first = r.top < innerHeight && r.bottom > 0;
+      if (e.rootBounds) VH = e.rootBounds.height / 2.2; // rootMargin 60% arriba y abajo
+      var r = e.boundingClientRect, first = r.top < (VH || innerHeight) && r.bottom > 0;
       (S.get(e.target) || []).forEach(function (st) { st.first = first; queue.push(st); });
     });
     pump();
@@ -123,14 +128,16 @@ document.documentElement.classList.add('fx');
   function onSee(es) {
     es.forEach(function (e) {
       var el = e.target, vis = e.isIntersecting, rb = e.rootBounds;
-      var amt = vis ? Math.max(e.intersectionRatio, e.intersectionRect.height / ((rb && rb.height) || innerHeight)) : 0;
+      if (rb) VH = rb.height;
+      var amt = vis ? Math.max(e.intersectionRatio, e.intersectionRect.height / (VH || innerHeight)) : 0;
       el.classList.toggle('fx-off', !vis);
       (S.get(el) || []).forEach(function (st) {
         if (!st.ready) return;
         st.vis = vis;
         if (vis && !st.seen && amt >= (st.c.t == null ? 0.15 : st.c.t)) {
           st.seen = 1;
-          if (!st.done && st.c.go) st.c.go(st);
+          // si una entrada falla, el elemento queda en su estado final (nunca oculto)
+          if (!st.done && st.c.go) try { st.c.go(st); } catch (err) { rest(st); st.el.classList.add('in'); }
         }
         sync(st);
       });
@@ -185,7 +192,7 @@ document.documentElement.classList.add('fx');
   function onScroll() { if (!sRaf) sRaf = requestAnimationFrame(scrollTick); }
   function scrollTick() {
     sRaf = 0;
-    var vh = innerHeight, rs = scrollers.map(function (st) { return st.el.getBoundingClientRect(); });
+    var vh = VH || innerHeight, rs = scrollers.map(function (st) { return st.el.getBoundingClientRect(); });
     scrollers.forEach(function (st, i) { st.c.upd(st, rs[i], vh); });
   }
   function scroller(st, on) {
@@ -314,6 +321,8 @@ document.documentElement.classList.add('fx');
   C['scroll-words'] = {
     t: 0, loop: 1,
     prep: function (st) {
+      // ya a la vista al armarse: el texto queda como esta (no se apaga texto ya pintado ni se rearma el parrafo)
+      if (st.first) { st.skip = 1; return; }
       var el = st.el, n = words(el, function (w, i) { var s = mk('span', 'fx-sw', null, w); s.style.setProperty('--i', i); return s; });
       el.style.setProperty('--n', n);
       st.nat = CSS.supports('animation-timeline: view()');
@@ -321,54 +330,64 @@ document.documentElement.classList.add('fx');
       if (!st.nat) el.style.setProperty('--fx-p', 0);
       st.p = -1;
     },
-    run: function (st, on) { if (!st.nat) scroller(st, on); },
+    run: function (st, on) { if (!st.nat && !st.skip) scroller(st, on); },
     upd: function (st, r, vh) {
       // mismo rango que la version CSS: cover 12% a cover 52%
       var p = clamp(((vh - r.top) / (vh + r.height) - 0.12) / 0.4, 0, 1);
       if (Math.abs(p - st.p) > 0.004) { st.p = p; st.el.style.setProperty('--fx-p', p.toFixed(3)); }
     },
-    fin: function (st) { st.el.style.setProperty('--fx-p', 1); }
+    fin: function (st) { if (!st.skip) st.el.style.setProperty('--fx-p', 1); }
   };
 
   // ---------- odometer: columnas de digitos que ruedan hasta el valor (el texto final queda para lectores) ----------
-  // Alineado a la derecha como un contador: las unidades no se mueven de lugar y las columnas que sobran se cierran.
+  // Sin saltos de diagramacion (CLS 0): la caja ocupa el ancho del valor final; las columnas que sobran al principio
+  // van a la izquierda, fuera del flujo, y todo se corre con transform mientras se apagan. Las unidades quedan fijas.
   C.odometer = {
     pre: 1, t: 0.6,
     prep: function (st) {
       var el = st.el, raw = parseFloat(el.textContent.replace(/[^\d-]/g, ''));
-      var to = num(el, 'to', num(el, 'count', isNaN(raw) ? 0 : raw)), from = num(el, 'from', 0), loc = attr(el, 'format', 'es-AR');
-      var f = function (v) { return loc === 'none' ? String(v) : v.toLocaleString(loc, { maximumFractionDigits: 0 }); };
+      var to = num(el, 'to', num(el, 'count', isNaN(raw) ? 0 : raw)), from = num(el, 'from', 0), sep = attr(el, 'sep', '.');
+      // miles con punto (es-AR) sin Intl: la primera llamada a toLocaleString carga datos y tarda decenas de ms en un celular
+      var f = function (v) { return String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, sep); };
       var a = f(from), b = f(to), n = Math.max(a.length, b.length);
       a = a.padStart(n); b = b.padStart(n);
-      // texto con degrade (background-clip:text): las columnas reciben el mismo fondo, linea por linea
-      var src = el, bg = 'none', clip = getComputedStyle(el).webkitTextFillColor === 'rgba(0, 0, 0, 0)';
-      for (var j = 0; clip && j < 4 && src && bg === 'none'; j++) { bg = getComputedStyle(src).backgroundImage; if (bg === 'none') src = src.parentElement; }
       el.textContent = '';
       label(el, b.trim());
-      var box = hide(mk('span', 'fx-od', el));
-      if (bg !== 'none') { box.style.setProperty('--fx-bg', bg); if (src === el) el.style.backgroundImage = 'none'; }
+      var box = hide(mk('span', 'fx-od', el)), lead = mk('span', 'fx-ol', box);
       st.cols = [];
       for (var i = 0; i < n; i++) {
         var x = a[i], y = b[i], dig = !/[^\d ]/.test(x + y);
-        var col = mk('span', 'fx-oc' + (x === ' ' ? ' fx-z' : ''), box);
-        var s = mk('span', dig ? 'fx-os' : 'fx-ox', col, dig ? '0\n1\n2\n3\n4\n5\n6\n7\n8\n9' : x === ' ' ? y : x);
-        if (dig) s.style.setProperty('--d', +x || 0);
-        col.style.transitionDelay = s.style.transitionDelay = i * 70 + 'ms';
-        st.cols.push([col, s, +y || 0, y === ' ']);
+        var col = mk('span', 'fx-oc' + (x === ' ' ? ' fx-z' : ''), y === ' ' ? lead : box);
+        var sp = mk('span', dig ? 'fx-os' : 'fx-ox', col, dig ? '0\n1\n2\n3\n4\n5\n6\n7\n8\n9' : x === ' ' ? y : x);
+        if (dig) sp.style.setProperty('--d', +x || 0);
+        col.style.transitionDelay = sp.style.transitionDelay = i * 70 + 'ms';
+        st.cols.push([col, sp, +y || 0]);
       }
+      st.box = box;
+      // Lecturas despues del layout (ResizeObserver, antes de pintar): sin layout forzado en el arranque
+      onResize(box, function () {
+        var cs = getComputedStyle(el), src = el, bg = 'none';
+        // texto con degrade (background-clip:text): las columnas reciben el mismo fondo, linea por linea
+        for (var j = 0; cs.webkitTextFillColor === 'rgba(0, 0, 0, 0)' && j < 4 && src && bg === 'none'; j++) { bg = getComputedStyle(src).backgroundImage; if (bg === 'none') src = src.parentElement; }
+        if (bg !== 'none') { box.style.setProperty('--fx-bg', bg); if (src === el) el.style.backgroundImage = 'none'; }
+        // corrimiento inicial: el numero largo arranca en el mismo borde que el final (segun la alineacion)
+        var lw = lead.offsetWidth, al = cs.textAlign;
+        if (st.rolled || !lw) return;
+        box.style.transition = 'none';
+        box.style.transform = 'translateX(' + (al === 'center' ? lw / 2 : al === 'right' || al === 'end' ? 0 : lw) + 'px)';
+      });
     },
     go: function (st) {
       st.el.classList.add('fx-roll');
-      odoSet(st, 1);
+      odoSet(st);
       later(st, function () { st.el.classList.remove('fx-roll'); finish(st); }, 1900 + st.cols.length * 70);
     },
-    fin: function (st) { if (st.cols) odoSet(st, 0); st.el.classList.remove('fx-roll'); }
+    fin: function (st) { if (st.cols) odoSet(st); st.el.classList.remove('fx-roll'); }
   };
-  function odoSet(st, slow) {
-    st.cols.forEach(function (c, i) {
-      if (c[3] && slow) c[0].style.transitionDelay = i * 70 + 700 + 'ms';
-      c[0].classList.toggle('fx-z', c[3]); c[1].style.setProperty('--d', c[2]);
-    });
+  function odoSet(st) {
+    st.rolled = 1;
+    st.cols.forEach(function (c) { c[0].classList.toggle('fx-z', c[0].parentNode !== st.box); c[1].style.setProperty('--d', c[2]); });
+    st.box.style.transition = st.box.style.transform = '';
   }
 
   // ---------- glow-card: luz que sigue al mouse por el borde; en tactil, un barrido al entrar ----------
@@ -419,7 +438,8 @@ document.documentElement.classList.add('fx');
     t: 0.4,
     prep: function (st) {
       var el = st.el, s = hide(mk('span', 'fx-bb', el));
-      s.style.setProperty('--fx-r', getComputedStyle(el).borderTopLeftRadius);
+      // el radio se lee con el layout ya hecho (sin recalculo forzado en el arranque)
+      onResize(el, function () { s.style.setProperty('--fx-r', getComputedStyle(el).borderTopLeftRadius); });
       st.b = mk('i', '', s);
       if (FINE.matches) el.addEventListener('pointerenter', function () { beamBorder(st); });
       el.addEventListener('focusin', function () { beamBorder(st); });
@@ -429,20 +449,17 @@ document.documentElement.classList.add('fx');
     fin: function (st) { if (st.a) st.a.cancel(); }
   };
 
-  // ---------- magnetic: el contenido se acerca al cursor hasta 6 px (solo mouse) ----------
+  // ---------- magnetic: el boton se acerca al cursor hasta 6 px (solo mouse; propiedad translate, sin tocar el DOM) ----------
   C.magnetic = {
     t: 0,
     prep: function (st) {
       var el = st.el;
       if (!FINE.matches) return;
-      var inner = mk('span', 'fx-mg');
-      while (el.firstChild) inner.appendChild(el.firstChild);
-      el.appendChild(inner);
       var r, x = 0, y = 0, tx = 0, ty = 0, rq = 0;
       var step = function () {
         x += (tx - x) * 0.2; y += (ty - y) * 0.2;
         if (Math.abs(tx - x) < 0.05 && Math.abs(ty - y) < 0.05) { x = tx; y = ty; rq = 0; } else rq = requestAnimationFrame(step);
-        inner.style.transform = x || y ? 'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,0)' : '';
+        el.style.translate = x || y ? x.toFixed(2) + 'px ' + y.toFixed(2) + 'px' : '';
       };
       var go = function () { if (!rq) rq = requestAnimationFrame(step); };
       el.addEventListener('pointerenter', function () { r = el.getBoundingClientRect(); });
@@ -607,11 +624,19 @@ document.documentElement.classList.add('fx');
     t: 0, loop: 1,
     prep: function (st) {
       var el = st.el, r = hide(mk('span', 'fx-tr'));
-      el.insertBefore(r, el.firstChild);
       st.r = r; mk('i', '', r); mk('b', '', r);
       st.marks = arr(el.querySelectorAll(attr(el, 'marks', '.num')));
       st.p = -1;
-      onResize(el, function () { traceGeo(st); });
+      onResize(el, function () {
+        // el riel va primero (debajo de los pasos posicionados); si eso mueve al primer hijo (reglas :first-child), va al final.
+        // Se hace aca, con el layout ya calculado, para no forzar un layout en el arranque.
+        if (!r.parentNode) {
+          var f = el.firstElementChild, y0 = f && off(f)[1];
+          el.insertBefore(r, el.firstChild);
+          if (f && off(f)[1] !== y0) el.appendChild(r);
+        }
+        traceGeo(st);
+      });
     },
     run: function (st, on) { scroller(st, on); },
     upd: function (st, R, vh) {
@@ -636,7 +661,8 @@ document.documentElement.classList.add('fx');
     var len = Math.max(1, g.e - g.s), r = st.r;
     st.g = g; r.hidden = false;
     r.className = 'fx-tr fx-tr-' + g.ax;
-    r.style.cssText = (g.ax === 'x' ? 'left:' + g.s + 'px;top:' + g.c + 'px;width:' : 'top:' + g.s + 'px;left:' + g.c + 'px;height:') + len + 'px;--fx-l:' + len + 'px';
+    // posicion con transform (no cuenta como salto de diagramacion si cambia al redimensionar)
+    r.style.cssText = 'transform:translate(' + (g.ax === 'x' ? g.s + 'px,' + g.c : g.c + 'px,' + g.s) + 'px);' + (g.ax === 'x' ? 'width:' : 'height:') + len + 'px;--fx-l:' + len + 'px';
     st.p = -1;
     if (reduced) traceSet(st, 1); else onScroll();
   }
@@ -824,15 +850,38 @@ document.documentElement.classList.add('fx');
   };
 
   // ---------- feed: avisos que llegan de a uno arriba (alto fijo, maximo 4, una vuelta) ----------
+  // Sin saltos de diagramacion (CLS 0): los avisos van en posicion absoluta y se mueven solo con transform.
   C.feed = {
     pre: 1, t: 0.35,
     prep: function (st) {
       var el = st.el, items = arr(el.children), max = Math.min(num(el, 'max', 4), items.length);
-      var R = el.getBoundingClientRect(), last = items[max - 1].getBoundingClientRect(), pb = parseFloat(getComputedStyle(el).paddingBottom) || 0;
-      el.style.height = Math.ceil(last.bottom - R.top + pb) + 'px';
-      st.items = items; st.max = max; st.k = items.length;
-      items.forEach(function (it) { it.classList.add('fx-fi'); });
-      el.classList.add('fx-feed');
+      if (st.first) return; // ya estaba a la vista: queda la lista completa, sin cambiar el alto
+      st.max = max; st.n = items.length;
+      // se mide en el ResizeObserver (layout ya hecho): alto fijo para max avisos, alto de cada aviso, margenes
+      onResize(el, function () {
+        var cs = getComputedStyle(el);
+        if (!st.items) {
+          var R = el.getBoundingClientRect(), last = items[max - 1].getBoundingClientRect();
+          st.H = Math.ceil(last.bottom - R.top + (parseFloat(cs.paddingBottom) || 0));
+          el.style.height = st.H + 'px';
+          st.gap = parseFloat(cs.rowGap) || 0;
+          st.items = items;
+          st.list = st.done ? items.slice(0, max) : [];
+          st.hs = items.map(function (it) { return it.offsetHeight; });
+          st.S = feedSum(st);
+          ['Top', 'Left', 'Right'].forEach(function (k) { el.style.setProperty('--fx-p' + k[0], cs['padding' + k]); });
+          el.classList.add('fx-feed', 'fx-now');
+          items.forEach(function (it) { it.classList.toggle('fx-fi', st.list.indexOf(it) < 0); });
+          feedPlace(st);
+          requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.remove('fx-now'); }); });
+          st.on = false; sync(st);
+        } else {
+          // cambio de ancho: se vuelven a medir los avisos visibles y el alto fijo acompaña
+          st.hs = st.items.map(function (it, i) { return it.offsetHeight || st.hs[i]; });
+          el.style.height = st.H + feedSum(st) - st.S + 'px';
+          feedPlace(st);
+        }
+      });
       if (FINE.matches) {
         el.addEventListener('pointerenter', function () { st.hold = 1; sync(st); });
         el.addEventListener('pointerleave', function () { st.hold = 0; sync(st); });
@@ -841,24 +890,31 @@ document.documentElement.classList.add('fx');
     go: function (st) { st.go = 1; st.on = false; sync(st); },
     run: function (st, on) {
       clearTimeout(st.tm);
-      if (on && st.go) st.tm = setTimeout(function () { feedStep(st); }, st.k === st.items.length ? 250 : num(st.el, 'interval', 1100));
+      if (on && st.go && st.items) st.tm = setTimeout(function () { feedStep(st); }, st.n === st.items.length ? 250 : num(st.el, 'interval', 1100));
     },
-    fin: function (st) { if (st.items) st.items.forEach(function (it, i) { it.classList.toggle('fx-fi', i >= st.max); }); }
+    fin: function (st) {
+      if (!st.items) return;
+      st.list = st.items.slice(0, st.max);
+      st.items.forEach(function (it) { it.getAnimations().forEach(function (a) { a.cancel(); }); it.classList.toggle('fx-fi', st.list.indexOf(it) < 0); });
+      feedPlace(st);
+    }
   };
+  function feedSum(st) { return st.hs.slice(0, st.max).reduce(function (a, b) { return a + b; }, 0); }
+  function feedPlace(st) {
+    var y = 0;
+    st.list.forEach(function (it) { it.style.transform = 'translateY(' + y + 'px)'; y += st.hs[st.items.indexOf(it)] + st.gap; });
+  }
   function feedStep(st) {
-    var it = st.items[--st.k], vis = st.items.filter(function (x) { return !x.classList.contains('fx-fi'); });
-    var y0 = vis.map(function (x) { return x.getBoundingClientRect().top; });
+    var it = st.items[--st.n], l = st.list;
+    l.unshift(it);
     it.classList.remove('fx-fi');
-    vis.forEach(function (x, i) {
-      var dy = y0[i] - x.getBoundingClientRect().top;
-      x.animate([{ transform: 'translateY(' + dy + 'px)' }, { transform: 'none' }], { duration: 520, easing: EASE });
-    });
-    it.animate([{ opacity: 0, transform: 'translateY(-12px) scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: 520, easing: EASE });
-    if (vis.length >= st.max) {
-      var old = vis[vis.length - 1];
+    it.animate([{ opacity: 0, transform: 'translateY(-12px) scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: 520, easing: EASE, composite: 'add' });
+    feedPlace(st);
+    if (l.length > st.max) {
+      var old = l.pop();
       old.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' }).onfinish = function (e) { old.classList.add('fx-fi'); e.target.cancel(); };
     }
-    if (st.k <= 0) finish(st); else { st.on = false; sync(st); }
+    if (st.n <= 0) finish(st); else { st.on = false; sync(st); }
   }
 
   // ---------- camera: paneo y zoom (Web Animations) sobre una captura, hacia sus marcas ----------
@@ -936,6 +992,7 @@ document.documentElement.classList.add('fx');
     pause: function () { pause(true); },
     resume: function () { pause(false); }
   };
-  if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', function () { init(); }); else init();
-  H.classList.add('fx-ready');
+  // fx-ready recien cuando termino el primer init: si algo falla antes, el failsafe de fx.css muestra todo a los 3 s
+  var start = function () { init(); H.classList.add('fx-ready'); };
+  if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', start); else start();
 })();
