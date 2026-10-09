@@ -1,7 +1,13 @@
 /* Enterprise SOC: comportamiento comun de todas las paginas.
    Menu, reloj, entradas, titulos, linea de guardia, capturas, contadores, cinta, visor del panel,
-   recorrido, alerta que se resuelve, pasar la guardia y formulario. Todo respeta el movimiento reducido.
+   recorrido (con la camara de fx.js), alerta que se resuelve, pasar la guardia y formulario. Todo respeta el movimiento reducido.
    Regla: lo que se lee o se toca no se mueve; el movimiento vive en las entradas y en lo decorativo. */
+// html.sx = este script corre. El CSS solo deja las entradas ocultas mientras falte .sx durante 3 s
+// (si el script no llega, el contenido aparece solo). Va primero, antes que cualquier otra cosa.
+// Si llego despues de esa red de seguridad (--fs ya en 1), html.sx-late deja el recorrido como ya se veia
+// (todas las capturas, ver site.css) para no moverlo bajo el lector. Antes de los 2,9 s no puede pasar.
+if (performance.now() > 2900 && getComputedStyle(document.documentElement).getPropertyValue('--fs').trim() === '1') document.documentElement.classList.add('sx-late');
+document.documentElement.classList.add('sx');
 (function () {
   'use strict';
 
@@ -10,16 +16,61 @@
   const fine = matchMedia('(hover: hover) and (pointer: fine)');
   const nav = document.querySelector('.nav');
 
-  // ---------- Menu (celular y tablet) ----------
+  // Si el script llego tarde (red lenta), la red de seguridad del CSS ya mostro las entradas:
+  // se dejan visibles en el mismo cuadro, sin volver a ocultarlas.
+  if (performance.now() > 2600) {
+    document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('in', 'done'));
+    document.querySelectorAll('.alert-card[data-play]').forEach((el) => el.classList.add('s2'));
+  }
+
+  // ---------- Menu (celular y tablet, hasta 980 px) ----------
+  // Cerrado: fuera del tabulador y del lector (visibility en CSS + inert).
+  // Abierto: el foco entra al primer link y queda dentro de la barra, la pagina no se mueve,
+  // un velo cubre el resto y tocarlo cierra. Escape cierra y devuelve el foco al boton.
   const menuBtn = nav.querySelector('.menu-btn');
-  function setMenu(open) {
+  const menu = nav.querySelector('.nav-links');
+  const mobileMenu = matchMedia('(max-width: 980px)');
+  const outside = [document.querySelector('.skip'), document.querySelector('main'), document.querySelector('footer')].filter(Boolean);
+  const isOpen = () => nav.classList.contains('open');
+  const syncMenuInert = () => { if (menu) menu.inert = mobileMenu.matches && !isOpen(); };
+  function setMenu(open, restoreFocus) {
+    const was = isOpen();
     nav.classList.toggle('open', open);
     menuBtn.setAttribute('aria-expanded', open);
     menuBtn.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+    document.documentElement.classList.toggle('menu-open', open);
+    outside.forEach((el) => { el.inert = open; });
+    syncMenuInert();
+    if (open && !was) {
+      const first = menu && menu.querySelector('a[href]');
+      if (first) first.focus({ preventScroll: true });
+    } else if (!open && was && restoreFocus) {
+      menuBtn.focus({ preventScroll: true });
+    }
   }
-  menuBtn.addEventListener('click', () => setMenu(!nav.classList.contains('open')));
+  // orden del tabulador con el menu abierto: la barra (marca, boton) y despues los links del menu
+  function menuFocusables() {
+    const bar = [...nav.querySelectorAll('a[href], button')].filter((el) => !menu.contains(el));
+    return [...bar, ...menu.querySelectorAll('a[href]')].filter((el) => el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden');
+  }
+  menuBtn.addEventListener('click', () => setMenu(!isOpen()));
   nav.querySelectorAll('.nav-links a').forEach((a) => a.addEventListener('click', () => setMenu(false)));
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && nav.classList.contains('open')) { setMenu(false); menuBtn.focus(); } });
+  // el velo es el ::after de la barra: un toque ahi llega con target = nav
+  nav.addEventListener('click', (e) => { if (e.target === nav && isOpen()) setMenu(false, true); });
+  document.addEventListener('keydown', (e) => {
+    if (!isOpen()) return;
+    if (e.key === 'Escape') { setMenu(false, true); return; }
+    if (e.key !== 'Tab') return;
+    const list = menuFocusables();
+    if (!list.length) return;
+    const i = list.indexOf(document.activeElement);
+    const n = e.shiftKey ? (i <= 0 ? list.length - 1 : i - 1) : (i < 0 || i === list.length - 1 ? 0 : i + 1);
+    e.preventDefault();
+    list[n].focus();
+  });
+  // al pasar a escritorio (girar la tablet, agrandar la ventana) el menu se cierra solo
+  mobileMenu.addEventListener('change', () => { if (!mobileMenu.matches && isOpen()) setMenu(false); syncMenuInert(); });
+  syncMenuInert();
 
   // ---------- Reloj de guardia ----------
   const clock = document.querySelector('[data-clock]');
@@ -69,10 +120,12 @@
 
   // ---------- Barra: transparente sobre la zona oscura de arriba, blanca despues ----------
   const top = document.querySelector('.hero, .page-hero, .demo-wrap, .nf');
+  // la 404 es oscura de punta a punta: la barra no pasa nunca a blanca
+  const allDark = document.body.classList.contains('notfound');
   let navSolid = null;
   function updateNav() {
     const limit = top ? top.offsetTop + top.offsetHeight - nav.offsetHeight : 30;
-    const solid = window.scrollY > Math.max(30, limit);
+    const solid = !allDark && window.scrollY > Math.max(30, limit);
     if (solid !== navSolid) { navSolid = solid; nav.classList.toggle('solid', solid); }
     nav.classList.toggle('scrolled', window.scrollY > 24);
   }
@@ -166,15 +219,26 @@
     }));
   }
 
+  // ---------- Camara de fx sobre las capturas ----------
+  // La captura que se activa (pestaña del visor o capitulo del recorrido) se recorre con FX.camera; la que se
+  // va se detiene despues del fundido. Solo si la pagina la pide: data-cam en la captura o data-fx="camera"
+  // en ella o en su contenedor. Sin fx.js o con movimiento reducido no pasa nada (fx.js lo resuelve).
+  const camOn = (shot) => !!(shot && window.FX && (shot.hasAttribute('data-cam') || shot.closest('[data-fx~="camera"]')));
+  const camPlay = (shot) => { if (camOn(shot)) window.FX.camera(shot); };
+  const camStop = (shot) => { if (camOn(shot)) window.FX.camera(shot, { stop: true }); };
+
   // ---------- Visor del panel (pestañas con su leyenda) ----------
   document.querySelectorAll('[data-viewer]').forEach((viewer) => {
     const tabs = [...viewer.querySelectorAll('.tab')];
     const caption = viewer.querySelector('.shot-caption');
     function showShot(panel, on) {
       if (on) { panel.hidden = false; requestAnimationFrame(() => panel.classList.add('on')); }
-      else { panel.classList.remove('on'); setTimeout(() => { if (!panel.classList.contains('on')) panel.hidden = true; }, 650); }
+      else { panel.classList.remove('on'); setTimeout(() => { if (!panel.classList.contains('on')) { panel.hidden = true; camStop(panel); } }, 650); }
     }
     function select(tab, focus) {
+      const changed = tab.getAttribute('aria-selected') !== 'true';
+      // desde el primer cambio la camara la mueve la pestaña, cada vez: data-cam-auto (fx.js, al verse) la repetiria
+      if (changed) viewer.querySelectorAll('[data-cam-auto]').forEach((s) => s.removeAttribute('data-cam-auto'));
       tabs.forEach((t) => {
         const on = t === tab;
         t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1;
@@ -182,6 +246,7 @@
       });
       const panel = document.getElementById(tab.getAttribute('aria-controls'));
       if (caption && panel.dataset.caption) caption.innerHTML = panel.dataset.caption;
+      if (changed) camPlay(panel);
       if (focus) tab.focus();
     }
     tabs.forEach((t, i) => {
@@ -204,13 +269,40 @@
   if (chapters.length) {
     const shots = [...document.querySelectorAll('.scrolly .shot')];
     const dots = [...document.querySelectorAll('.scrolly-dots i')];
-    let cur = 0;
+    // Capturas diferidas: las inactivas pueden venir con data-src/data-srcset para no competir con la carga
+    // de la pagina. Se completan cuando su capitulo se activa (y la siguiente), o despues de load, al
+    // acercarse el recorrido. Sin JS no hacen falta: solo se ve la captura activa (la primera, con src).
+    const lazy = 'img[data-src], img[data-srcset]';
+    const promote = (shot) => {
+      const img = shot && shot.querySelector(lazy);
+      if (!img) return;
+      if (img.dataset.srcset) img.srcset = img.dataset.srcset;
+      if (img.dataset.src) img.src = img.dataset.src;
+      img.removeAttribute('data-srcset'); img.removeAttribute('data-src');
+    };
+    if (shots.some((s) => s.querySelector(lazy))) {
+      const near = () => {
+        const io = new IntersectionObserver((entries) => {
+          if (!entries.some((e) => e.isIntersecting)) return;
+          io.disconnect(); shots.forEach(promote);
+        }, { rootMargin: '75% 0px' });
+        io.observe(shots[0].closest('.scrolly') || shots[0]);
+      };
+      if (document.readyState === 'complete') near(); else addEventListener('load', near, { once: true });
+    }
+    let cur = 0, camAt = -1;
     const setStep = (n) => {
-      if (n === cur) return;
-      cur = n;
-      chapters.forEach((c, i) => c.classList.toggle('on', i === n));
-      shots.forEach((s, i) => s.classList.toggle('on', i === n));
-      dots.forEach((d, i) => d.classList.toggle('on', i === n));
+      promote(shots[n]); promote(shots[n + 1]);
+      if (n !== cur) {
+        const prev = shots[cur];
+        cur = n;
+        chapters.forEach((c, i) => c.classList.toggle('on', i === n));
+        shots.forEach((s, i) => s.classList.toggle('on', i === n));
+        dots.forEach((d, i) => d.classList.toggle('on', i === n));
+        setTimeout(() => { if (prev && !prev.classList.contains('on')) camStop(prev); }, 700);
+      }
+      // la camara corre cada vez que un capitulo pasa a ser el activo (tambien el primero, al llegar)
+      if (n !== camAt) { camAt = n; camPlay(shots[n]); }
     };
     chapters[0].classList.add('on');
     const chIO = new IntersectionObserver((entries) => {
@@ -358,10 +450,14 @@
       fields.forEach((f) => markField(f, bad.includes(f)));
       if (bad.length) {
         showError(bad.length === 1 ? 'Revisa el campo marcado.' : 'Revisa los campos marcados.');
-        bad[0].focus();
+        // el campo entero (con su etiqueta) queda a la vista debajo de la barra fija (scroll-padding-top)
+        const box = bad[0].closest('.field') || bad[0];
+        box.scrollIntoView({ block: 'nearest', behavior: reduce.matches ? 'auto' : 'smooth' });
+        bad[0].focus({ preventScroll: true });
         return;
       }
       btn.disabled = true;
+      let fallo = false;
       const label = btn.textContent;
       btn.textContent = 'Enviando…';
       try {
@@ -372,11 +468,37 @@
         form.querySelector('[data-done-title]').textContent = name ? `Listo, ${name}.` : 'Listo.';
         form.classList.add('sent');
         const done = form.querySelector('.form-done');
-        done.setAttribute('tabindex', '-1'); done.focus({ preventScroll: false });
+        done.setAttribute('tabindex', '-1');
+        // el formulario se achica: se lleva a la vista entero (con el tilde) y despues recibe el foco
+        form.scrollIntoView({ block: 'nearest', behavior: reduce.matches ? 'auto' : 'smooth' });
+        done.focus({ preventScroll: true });
       } catch (_) {
+        fallo = true;
         showError('No pudimos enviar el formulario. Escríbenos a <a href="mailto:contacto@enterprisesoc.lat?subject=Quiero%20una%20demo%20de%20Enterprise%20SOC">contacto@enterprisesoc.lat</a> y coordinamos la demo.');
-      } finally { btn.disabled = false; btn.textContent = label; }
+      } finally {
+        btn.disabled = false; btn.textContent = label;
+        // el boton tenia el foco al deshabilitarse: se lo devolvemos para no dejarlo en <body>
+        if (fallo) btn.focus({ preventScroll: true });
+      }
     });
+  }
+
+  // ---------- Diagramas con SMIL (paquetes que viajan por los cables) ----------
+  // El CSS no alcanza a SMIL: se pausan con movimiento reducido, fuera de pantalla y con la pestaña oculta.
+  const smil = [...document.querySelectorAll('svg')].filter((s) => !s.ownerSVGElement && typeof s.pauseAnimations === 'function' && s.querySelector('animate, animateMotion, animateTransform, set'));
+  if (smil.length) {
+    const smilSeen = new WeakMap();
+    const syncSmil = (s) => {
+      const run = smilSeen.get(s) && !document.hidden && !reduce.matches;
+      if (run) { if (s.animationsPaused()) s.unpauseAnimations(); } else if (!s.animationsPaused()) s.pauseAnimations();
+    };
+    smil.forEach((s) => s.pauseAnimations());
+    const smilIO = new IntersectionObserver((entries) => {
+      for (const e of entries) { smilSeen.set(e.target, e.isIntersecting); syncSmil(e.target); }
+    }, { rootMargin: '10% 0px' });
+    smil.forEach((s) => smilIO.observe(s));
+    document.addEventListener('visibilitychange', () => smil.forEach(syncSmil));
+    reduce.addEventListener('change', () => smil.forEach(syncSmil));
   }
 
   // ---------- Scroll y tamaño ----------

@@ -1,0 +1,25 @@
+/* paginas: index.html (scripts/build.mjs lo copia solo en esas paginas) */
+/* Portada (index.html): ajustes propios de la pagina. Todo va bajo .home. */
+
+/* Cinta "EN VIVO · DEMO": en celulares queda la etiqueta corta "DEMO" (antes se ocultaba entera) */
+@media (max-width:640px){
+  .home .ticker-label{display:flex;padding-right:40px;font-size:12px;letter-spacing:.12em;background:linear-gradient(90deg,rgba(9,15,28,1) 0,rgba(9,15,28,1) calc(100% - 32px),rgba(9,15,28,0) 100%)}
+  .home .ticker-label .tl-live{display:none}
+}
+
+/* Boton de pausa de la cinta: fondo opaco para que el texto que pasa por detras no se mezcle con el icono */
+.home .ticker .fx-mq-b{background:rgba(9,15,28,.94);border-color:rgba(148,163,184,.34)}
+
+/* El panel: acceso al recorrido en video, debajo de la leyenda */
+.home #pantalla .tour{margin-top:22px;display:flex;justify-content:center}
+
+/* Que vigila: la palabra que rota se lee como parte del texto, un poco mas marcada */
+.home #vigila .rot{color:var(--text-primary);font-weight:600}
+
+/* Alerta de ejemplo: si el script nunca corre, el historial (Detectada, La toma, Resuelta) se lee
+   entero en vez de quedar atenuado. Con .sx --fs vale 0 y sections.js lo anima como siempre. */
+.home .ac-trail li:not(.on){opacity:calc(.4 + var(--fs) * .6)}
+@media (scripting:none){.home .ac-trail li{opacity:1}}
+
+/* Como empieza: la direccion del paso 1 vuelve a 8 px (la pastilla se ensancho en el SVG) */
+.home #como .art .t.sm{font-size:8px}

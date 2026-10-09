@@ -29,24 +29,52 @@
   const HC = 1500, HC2 = 330;       // capa de nubes principal y jirones bajos
   const START = [5600, 900];        // centro inicial (km): la Tierra queda a la izquierda y el texto de la portada, a la derecha, sobre el espacio
   function ease(p) { return 0.5 - 0.5 * Math.cos(Math.PI * clamp(p, 0, 1)); }
+  // Borde izquierdo del bloque de texto de la portada (px CSS).
+  function textLeftPx(W) {
+    const gutter = clamp(W * 0.05, 20, 72), bandW = Math.min(600, W - 2 * gutter);
+    return W - gutter - bandW;
+  }
   // Encuadre final: la red entera (Pilar a La Plata) a la izquierda del bloque de texto,
   // con lugar para los rotulos. Se aleja lo justo segun el ancho disponible.
   function endFrame(aspect, W) {
-    if (aspect < 1) return { h: Math.min(420, 150 / aspect), su: 0.535, sv: 0.25 };
     W = W || 1440;
-    const gutter = clamp(W * 0.05, 20, 72), bandW = Math.min(600, W - 2 * gutter);
-    const textLeft = 1 - (gutter + bandW) / W;
+    const textLeft = textLeftPx(W) / W;
     const avail = Math.max(0.2, textLeft - 0.05 - 140 / W);
     const h = Math.max(112, 92 / (aspect * avail));
     const su = 0.025 + 64 / W + 50 / (h * aspect);
     return { h, su, sv: 0.47 };
   }
-  function camera(p, aspect, W) {
+  // Encuadre por caja: la red entera (con lugar para los rotulos de los extremos) dentro de
+  // fr.box = [x0, y0, x1, y1] (fraccion del lienzo). Lo usan el video y las pantallas verticales.
+  const LBL_L = 64, LBL_R = 86, LBL_V = 14;   // PILAR a la izquierda, LA PLATA a la derecha
+  function fitFrame(box, aspect, W) {
+    const H = W / aspect;
+    const aw = Math.max(40, (box[2] - box[0]) * W - LBL_L - LBL_R), ah = Math.max(40, (box[3] - box[1]) * H - 2 * LBL_V);
+    const k = Math.min(aw / (NET[2] - NET[0]), ah / (NET[3] - NET[1]));     // px por km
+    const cx = (box[0] * W + LBL_L + box[2] * W - LBL_R) / 2, cy = (box[1] + box[3]) / 2 * H;
+    return { h: H / k, su: (cx - (NET[0] + NET[2]) / 2 * k) / W, sv: (cy + (NET[1] + NET[3]) / 2 * k) / H };
+  }
+  // Pantallas verticales sin encuadre propio: la red arriba (debajo de la barra) y la Tierra entera al empezar.
+  function portraitFrame(aspect, W) {
+    const H = W / aspect, top = 76 / H;
+    return { box: [0.01, top, 0.99, Math.min(0.95, top + 0.6 * W / H)], start: [0.5, top + 0.3 * W / H] };
+  }
+  function frameFor(fr, aspect, W) {
+    W = W || 1440;
+    if (fr && fr.box) return fr;
+    return aspect < 1 ? portraitFrame(aspect, W) : null;
+  }
+  function camera(p, aspect, W, fr) {
     const e = ease(p);
-    const end = endFrame(aspect, W);
-    const h = Math.exp(lerp(Math.log(H0), Math.log(end.h), e));
+    fr = frameFor(fr, aspect, W);
+    const end = fr ? fitFrame(fr.box, aspect, W || 1440) : endFrame(aspect, W);
+    // en vertical el globo entero tiene que entrar a lo ancho
+    const h0 = H0 * Math.max(1, 0.92 / aspect);
+    const h = Math.exp(lerp(Math.log(h0), Math.log(end.h), e));
     // CABA recorre la pantalla en linea recta mientras la escala baja en forma logaritmica
-    const s0u = 0.5 - START[0] / (H0 * aspect), s0v = 0.5 + START[1] / H0;
+    let s0u = 0.5 - START[0] / (H0 * aspect), s0v = 0.5 + START[1] / H0;
+    if (fr && fr.start) { s0u = fr.start[0]; s0v = fr.start[1]; }
+    else if (fr) { s0u = 0.5; s0v = (fr.box[1] + fr.box[3]) / 2; }
     const su = lerp(s0u, end.su, e), sv = lerp(s0v, end.sv, e);
     const rot = 0.16 * Math.pow(1 - e, 2.2);
     // centro de camara tal que CABA (0,0) caiga en (su, sv) con la rotacion aplicada
@@ -64,6 +92,8 @@
     ['SAN JUSTO', -34.6828, -58.5634], ['EZEIZA', -34.8546, -58.5244], ['LOMAS', -34.7600, -58.3988],
     ['QUILMES', -34.7206, -58.2546], ['LA PLATA', -34.9214, -57.9545],
   ].map(([name, lat, lon]) => ({ name, w: proj(lat, lon) }));
+  // caja de la red en km [x0, y0, x1, y1] (con la central)
+  const NET = SEDES.reduce((b, s) => [Math.min(b[0], s.w[0]), Math.min(b[1], s.w[1]), Math.max(b[2], s.w[0]), Math.max(b[3], s.w[1])], [0, 0, 0, 0]);
 
   // [lat, lon, poblacion en miles]
   const CITIES = [
@@ -457,6 +487,10 @@
     const ctx = overlay.getContext('2d');
     const onlyNear = !!(opts && opts.onlyNear);
     const inset = (opts && opts.bottomInset) || 0;
+    // opts.frame = { box: [x0, y0, x1, y1], start: [u, v] } (fracciones): encuadre fijo para el video.
+    // opts.caption = false: sin el rotulo "EJEMPLO" pintado (la pagina lo pone como texto).
+    const frame = (opts && opts.frame) || null;
+    const caption = !(opts && opts.caption === false);
 
     const par = gl.getExtension('KHR_parallel_shader_compile');
     const pending = [startProgram(gl, VS_QUAD, FS_GROUND), startProgram(gl, VS_QUAD, FS_CLOUDS), startProgram(gl, VS_LIGHTS, FS_LIGHTS), startProgram(gl, VS_QUAD, FS_COPY)];
@@ -553,12 +587,14 @@
     }
 
     let W = 0, H = 0, cssW = 0, cssH = 0, scale = 1, dpr = 1;
+    let layKey = '', lay = null, layInfo = null;   // lugar de los rotulos de la red (ver labelLayout)
     function resize(quality) {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       cssW = glCanvas.clientWidth; cssH = glCanvas.clientHeight;
       scale = Math.min(dpr, 1.5) * 0.8 * (quality || 1);
       W = Math.max(2, Math.round(cssW * scale)); H = Math.max(2, Math.round(cssH * scale));
       if (glCanvas.width !== W || glCanvas.height !== H) { glCanvas.width = W; glCanvas.height = H; }
+      layKey = '';
       const ow = Math.round(cssW * dpr), oh = Math.round(cssH * dpr);
       if (overlay.width !== ow || overlay.height !== oh) { overlay.width = ow; overlay.height = oh; }
     }
@@ -583,7 +619,7 @@
       if (!ready) return;
       if (!W) resize();
       const aspect = cssW / cssH;
-      const cam = camera(p, aspect, cssW);
+      const cam = camera(p, aspect, cssW, frame);
       gl.viewport(0, 0, W, H);
       gl.disable(gl.BLEND);
 
@@ -650,6 +686,52 @@
       ctx.fillText(text, x, y + 0.5);
     }
 
+    // Zona donde pueden ir los rotulos de la red (px CSS): la caja del encuadre o, en escritorio,
+    // a la izquierda del bloque de texto, debajo de la barra y arriba de la cinta.
+    function labelRegion(aspect) {
+      const fr = frameFor(frame, aspect, cssW);
+      if (fr) return [fr.box[0] * cssW + 4, fr.box[1] * cssH, fr.box[2] * cssW - 4, fr.box[3] * cssH];
+      return [8, 74, Math.max(cssW * 0.3, textLeftPx(cssW) - 12), cssH - inset - 8];
+    }
+    // Lugar de cada rotulo, calculado una vez por tamano sobre el cuadro final (asi no saltan mientras
+    // se arma la red). Obstaculos: los anillos, la central con su rotulo y los rotulos ya puestos.
+    // Se prueba del lado de afuera y luego del otro, cada vez mas lejos; si no hay lugar, el rotulo no va.
+    function labelLayout(aspect) {
+      const key = cssW + 'x' + cssH;
+      if (key === layKey) return lay;
+      const cam = camera(1, aspect, cssW, frame);
+      const reg = labelRegion(aspect);
+      ctx.font = MONO;
+      const pts = SEDES.map((s) => toScreen(s.w[0], s.w[1], cam, aspect));
+      const [hx, hy] = toScreen(0, 0, cam, aspect);
+      const tw = (t) => ctx.measureText(t).width;
+      const obst = pts.map(([x, y], i) => [x - 11, y - 11, x + 11, y + 11, i]);
+      obst.push([hx - 21, hy - 21, hx + 21, hy + 21, -1], [hx + 20, hy - 33, hx + 33 + tw(HUB.label), hy - 11, -1]);
+      const fits = (b, i) => b[0] >= reg[0] && b[2] <= reg[2] && b[1] >= reg[1] && b[3] <= reg[3] &&
+        !obst.some((q) => q[4] !== i && b[0] < q[2] && b[2] > q[0] && b[1] < q[3] && b[3] > q[1]);
+      const byDist = SEDES.map((s, i) => i).sort((a, b) => Math.hypot(SEDES[b].w[0], SEDES[b].w[1]) - Math.hypot(SEDES[a].w[0], SEDES[a].w[1]));
+      const out = [];
+      for (const i of byDist) {
+        const [sx, sy] = pts[i], w = tw(SEDES[i].name), pref = sx < hx ? -1 : 1;
+        out[i] = null;
+        search: for (const set of [[0, 14, -14], [26, -26, 38, -38], [50, -50, 62, -62]]) {
+          for (const side of [pref, -pref]) {
+            for (const dy of set) {
+              const lx = sx + side * 16, y = sy + dy;
+              const b = side < 0 ? [lx - w - 6, y - 10, lx + 6, y + 10] : [lx - 6, y - 10, lx + w + 6, y + 10];
+              if (fits(b, i)) { out[i] = { side, dy }; obst.push([b[0] - 3, b[1] - 2, b[2] + 3, b[3] + 2, -2]); break search; }
+            }
+          }
+        }
+      }
+      layKey = key; lay = out;
+      layInfo = { region: reg, hub: [hx, hy], sites: SEDES.map((s, i) => {
+        const L = out[i], [sx, sy] = pts[i], w = tw(s.name), lx = L ? sx + L.side * 16 : 0, y = L ? sy + L.dy : 0;
+        return { name: s.name, ring: [sx, sy], label: L ? (L.side < 0 ? [lx - w - 6, y - 10, lx + 6, y + 10] : [lx - 6, y - 10, lx + w + 6, y + 10]) : null };
+      }) };
+      return out;
+    }
+
     function drawOverlay(p, time, cam, aspect) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, cssW, cssH);
@@ -676,9 +758,15 @@
       const ma = smooth(0.21, 0.27, p) * (1 - smooth(0.38, 0.45, p));
       if (ma > 0.01) {
         const names = [['ARGENTINA', -38.5, -65.5], ['URUGUAY', -32.6, -55.9], ['CHILE', -31.5, -71.2], ['CÓRDOBA', -31.42, -64.19], ['ROSARIO', -32.95, -60.65], ['MENDOZA', -32.89, -68.84], ['MONTEVIDEO', -34.90, -56.16]];
+        const reg = frame ? labelRegion(aspect) : [20, 70, cssW - 20, cssH - 20];
+        ctx.font = MONO;
+        const used = [];   // si dos nombres se pisan (pantallas angostas), queda el primero de la lista
         for (const [n, la, lo] of names) {
           const [x, y] = toScreen(...proj(la, lo), cam, aspect);
-          if (x < 20 || x > cssW - 20 || y < 70 || y > cssH - 20) continue;
+          const w = ctx.measureText(n).width, b = [x + 2, y - 10, x + w + 14, y + 10];
+          if (x < reg[0] || y < reg[1] + (frame ? 10 : 0) || y > reg[3] - (frame ? 10 : 0) || (frame && b[2] > reg[2])) continue;
+          if (used.some((q) => b[0] < q[2] && b[2] > q[0] && b[1] < q[3] && b[3] > q[1])) continue;
+          used.push(b);
           label(n, x + 8, y, ma * (n === 'ARGENTINA' ? 1 : 0.75));
         }
       }
@@ -700,18 +788,8 @@
       if (k <= 0) return;
       const order = SEDES.map((s, i) => ({ s, i, d: Math.hypot(s.w[0], s.w[1]) })).sort((a, b) => a.d - b.d);
       ctx.lineCap = 'round';
-      const placed = [];
-      const place = (x, y, w, left) => {
-        const bx0 = left ? x - w : x, bx1 = left ? x : x + w;
-        for (const dy of [0, 14, -14, 26, -26, 38, -38]) {
-          const yy = y + dy;
-          if (!placed.some((q) => bx0 < q[2] && bx1 > q[0] && yy - 10 < q[3] && yy + 10 > q[1])) { placed.push([bx0 - 3, yy - 10, bx1 + 3, yy + 10]); return yy; }
-        }
-        placed.push([bx0 - 3, y - 10, bx1 + 3, y + 10]);
-        return y;
-      };
+      const lay = labelLayout(aspect);
       ctx.font = MONO;
-      placed.push([bx - 20, by - 20, bx + 20, by + 20]);
       // despues de la llegada: una sede se pone en ambar, la central responde y vuelve a la normalidad
       const CYC = 9.5, life = p >= 0.999 ? time : -1;
       const ph = life >= 0 ? (life % CYC) / CYC : 1, act = life >= 0 ? order[Math.floor(life / CYC) % order.length].i : -1;
@@ -751,14 +829,15 @@
           ctx.beginPath(); ctx.arc(sx, sy, 8 * (0.6 + 0.4 * ring), 0, Math.PI * 2); ctx.stroke();
           ctx.strokeStyle = `rgba(236,146,84,${0.24 * ring * pulse})`; ctx.lineWidth = 1;
           ctx.beginPath(); ctx.arc(sx, sy, 12 + pulse * 3, 0, Math.PI * 2); ctx.stroke();
-          const left = sx < bx;
-          const lx = sx + (left ? -16 : 16);
-          o.ly = place(lx, sy, ctx.measureText(o.s.name).width + 12, left);
-          if (Math.abs(o.ly - sy) > 2) {
-            ctx.strokeStyle = `rgba(150,172,206,${0.35 * ring})`; ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(sx + (left ? -9 : 9), sy); ctx.lineTo(lx + (left ? 4 : -4), o.ly); ctx.stroke();
+          const L = lay[o.i];
+          if (L) {
+            const lx = sx + L.side * 16, ly = sy + L.dy;
+            if (Math.abs(L.dy) > 2) {
+              ctx.strokeStyle = `rgba(150,172,206,${0.35 * ring})`; ctx.lineWidth = 1;
+              ctx.beginPath(); ctx.moveTo(sx + L.side * 9, sy); ctx.lineTo(lx - L.side * 4, ly); ctx.stroke();
+            }
+            label(o.s.name, lx, ly, ring * 0.92, L.side < 0 ? 'right' : 'left', al > 0.3 ? 'rgba(251,191,36,A)' : okf > 0.3 ? 'rgba(110,231,183,A)' : undefined);
           }
-          label(o.s.name, lx, o.ly, ring * 0.92, left ? 'right' : 'left', al > 0.3 ? 'rgba(251,191,36,A)' : okf > 0.3 ? 'rgba(110,231,183,A)' : undefined);
         }
       });
       const ha = smooth(0, 0.25, k);
@@ -768,10 +847,11 @@
       ctx.beginPath(); ctx.arc(bx, by, 19, 0, Math.PI * 2); ctx.stroke();
       label(HUB.label, bx + 26, by - 22, ha, 'left', 'rgba(236,146,84,A)');
       const ea = smooth(0.9, 1, p);
-      if (ea > 0.01) label('EJEMPLO · 12 SEDES EN EL AMBA', 24, cssH - 28 - inset, ea * 0.8);
+      if (caption && ea > 0.01) label('EJEMPLO · 12 SEDES EN EL AMBA', 24, cssH - 28 - inset, ea * 0.8);
     }
 
-    return { render, resize, ensureFull, isReady: () => ready, isFull: () => full, siteCount: SEDES.length + 1 };
+    // _labels(): cajas de los rotulos del cuadro final (px CSS), para las pruebas
+    return { render, resize, ensureFull, isReady: () => ready, isFull: () => full, siteCount: SEDES.length + 1, _labels: () => layInfo };
   }
 
   if (IS_WORKER) {
