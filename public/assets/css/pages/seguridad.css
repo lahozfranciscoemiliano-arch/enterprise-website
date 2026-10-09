@@ -1,0 +1,79 @@
+/* Enterprise SOC: ajustes de seguridad.html, version 16.
+   Este archivo se copia en linea en TODAS las paginas (scripts/build.mjs): cada regla va
+   colgada de body.seguridad para no tocar las demas. Sin JS todo se ve; el movimiento respeta
+   prefers-reduced-motion (fx.js deja cada efecto en su estado final). */
+
+/* ---------- Cabecera: haces finos que salen de la red hacia afuera (fx beams) ----------
+   Salen de abajo a la izquierda y se abren hacia la derecha, lejos del titulo.
+   Los keyframes de fx.css (fx-dash) usan calc() sin unidad y Chromium no los interpola (el cometa
+   salta entre dos puntos del comienzo y no se ve): aca van los mismos valores en px. */
+@keyframes seg-dash{from{stroke-dashoffset:calc(1.68px + var(--o,0) * 1px)}to{stroke-dashoffset:calc(var(--o,0) * 1px)}}
+.seguridad .fx-bm-t,.seguridad .fx-bm-h{animation-name:seg-dash}
+/* detras del texto los haces quedan muy tenues; se encienden donde la cabecera esta libre
+   (a la derecha en pantallas anchas, en la franja de abajo en celulares y tabletas) */
+.seguridad .page-hero-bg>.fx-beams{-webkit-mask-image:linear-gradient(90deg,rgba(0,0,0,.16) 46%,#000 74%);mask-image:linear-gradient(90deg,rgba(0,0,0,.16) 46%,#000 74%)}
+@media (max-width:900px){
+  .seguridad .page-hero-bg>.fx-beams{-webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.2) 62%,#000 94%);mask-image:linear-gradient(180deg,rgba(0,0,0,.2) 62%,#000 94%)}
+}
+
+/* ---------- Como viajan los datos: nodos HTML unidos por curvas (fx beam-graph) ----------
+   El texto es HTML real y se lee en cualquier ancho; en celulares el flujo baja de arriba hacia abajo. */
+.seguridad #flujo .flow{margin:44px 0 0;padding:clamp(20px,3vw,40px)}
+.seguridad #flujo .fx-graph{grid-template-columns:minmax(0,1.12fr) minmax(0,1fr) minmax(0,1fr);gap:clamp(40px,6.4vw,104px)}
+.seguridad #flujo .fx-col{gap:20px}
+.seguridad .fl-zone{padding:14px 14px 16px;border:1px dashed rgba(100,116,139,.45);border-radius:20px}
+.seguridad .fl-zl{font-family:var(--f-mono);font-size:12px;letter-spacing:.18em;color:var(--text-muted);padding:0 4px}
+.seguridad .fl-note{margin-top:4px;padding:0 4px;font-family:var(--f-mono);font-size:12px;line-height:1.45;color:var(--accent)}
+.seguridad .fl-pair{display:grid;gap:16px;margin-top:16px}
+/* la direccion de la central se corta solo en los puntos (<wbr>), nunca a mitad de palabra */
+.seguridad #flujo .fx-node small{overflow-wrap:normal}
+.seguridad #flujo .fx-node.hub small+small{margin-top:2px}
+@media (min-width:1800px){
+  .seguridad #flujo .fx-node b{font-size:19px}
+  .seguridad #flujo .fx-node small,.seguridad .fl-zl,.seguridad .fl-note{font-size:13px}
+}
+@media (max-width:1100px){
+  .seguridad #flujo .fx-graph{grid-template-columns:minmax(0,1fr) minmax(0,1.22fr) minmax(0,1fr)}
+}
+@media (max-width:900px){
+  .seguridad #flujo .fx-node{padding:14px 12px}
+  .seguridad #flujo .fx-node b{font-size:16px}
+}
+@media (max-width:640px){
+  .seguridad #flujo .flow{margin-top:36px;padding:14px}
+  .seguridad #flujo .fx-graph{grid-template-columns:minmax(0,1fr);gap:46px}
+  .seguridad #flujo .fx-col{gap:10px}
+  .seguridad .fl-zone{padding:12px 10px 10px}
+  .seguridad .fl-pair{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+  .seguridad #flujo .fx-node{padding:12px 10px}
+  .seguridad #flujo .fx-node b{font-size:15.5px}
+  .seguridad #flujo .fx-node.hub{padding:16px 12px}
+}
+
+/* ---------- Ficha: terminal (fx terminal) ----------
+   fx.js arranca la terminal al ver el 35 % del bloque, pero su observador solo avisa al cruzar el 0, el 15
+   y el 60 %: si el bloque mide entre 1,67 y 2,3 pantallas (celulares, horizontal bajo) puede no arrancar
+   nunca y las lineas quedarian ocultas. Ahi las lineas se ven siempre y, donde el navegador tiene linea
+   de tiempo de scroll, cada una aparece al entrar en pantalla (solo CSS, tambien sin JS). */
+@media (max-width:640px),(orientation:landscape) and (max-height:560px){
+  html.fx .seguridad #ficha .fx-tl:not(.fx-on){opacity:1;transform:none}
+}
+@supports (animation-timeline:view()){
+  @media (prefers-reduced-motion:no-preference) and (max-width:640px),(prefers-reduced-motion:no-preference) and (orientation:landscape) and (max-height:560px){
+    .seguridad #ficha .spec li{animation:seg-line linear both;animation-timeline:view();animation-range:entry 0% entry 100%}
+  }
+}
+@keyframes seg-line{from{opacity:0;transform:translateY(8px)}}
+
+/* ---------- Acceso remoto: la linea de luz (fx trace) reemplaza la raya fija ----------
+   Igual que en como-funciona: hasta 900 px los pasos van en una columna con el numero a la
+   izquierda, y la linea baja por ese margen sin cruzar el texto. */
+.seguridad .timeline:has(>.fx-tr:not([hidden]))::before{display:none}
+@media (max-width:900px){
+  .seguridad .timeline{grid-template-columns:minmax(0,1fr);row-gap:30px}
+  .seguridad .timeline li{max-width:640px;padding:5px 0 0 56px}
+  .seguridad .timeline::before{display:block;left:18px;right:auto;top:18px;bottom:0;width:1px;height:auto;background:linear-gradient(180deg,var(--accent),var(--line-strong) 70%,transparent)}
+}
+
+/* ---------- Auditoria: la camara (fx camera) se acerca al registro y vuelve ---------- */
+.seguridad #auditoria .shots{overflow:hidden;border-radius:0 0 15px 15px}

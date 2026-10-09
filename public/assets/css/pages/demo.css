@@ -1,0 +1,72 @@
+/* Enterprise SOC: ajustes de demo.html, version 16.
+   Este archivo se copia en linea en TODAS las paginas (scripts/build.mjs): cada regla va
+   colgada de body.demo-page para no tocar las demas. Sin JS todo se ve (los efectos de fx.js
+   y video.js solo agregan cosas); el movimiento respeta prefers-reduced-motion. */
+
+/* ---------- Pantalla completa ----------
+   En pantallas altas (2560x1440) el bloque llena la ventana y el contenido queda centrado. */
+.demo-page .demo-wrap{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center}
+
+/* ---------- Fondo: grilla que titila apenas (fx grid) ----------
+   Capa propia en la parte de arriba (no en toda la seccion alta), concentrada alrededor del titulo
+   y apagada hacia los pasos y el formulario. Se probaron los haces (fx beams): su luz se ve en el
+   tramo final de cada curva, que aca cae detras del formulario o cruza el titulo. */
+.demo-page .dm-bg{position:absolute;left:0;right:0;top:0;height:min(100%,max(560px,56vw));z-index:1;pointer-events:none;--fx-mask:radial-gradient(60% 75% at 24% 34%,#000 10%,transparent 75%)}
+@media (max-width:900px){.demo-page .dm-bg{--fx-mask:radial-gradient(90% 70% at 30% 36%,#000 10%,transparent 78%)}}
+
+/* ---------- Orden ----------
+   El HTML va en el orden del celular (y del tabulador): textos, formulario, pasos con el adelanto,
+   recorrido. En dos columnas (>= 901) la grilla los acomoda: a la izquierda textos y pasos, a la
+   derecha formulario y recorrido. Filas: 1 = textos; el formulario ocupa 1 y 2 (la 2 mide lo que
+   le falte); los pasos ocupan 2 y 3; el recorrido va en la 3 (1fr absorbe el resto), pegado al formulario. */
+@media (min-width:901px){
+  .demo-page .demo-grid{grid-template-rows:auto auto 1fr;row-gap:28px}
+  .demo-page .demo-copy{grid-column:1;grid-row:1}
+  .demo-page .demo-grid>.form{grid-column:2;grid-row:1/span 2}
+  .demo-page .demo-grid>.next{grid-column:1;grid-row:2/span 2}
+  .demo-page .dm-tour{grid-column:2;grid-row:3;align-self:start}
+}
+/* <= 900 (.demo-copy es display:contents en site.css): textos, formulario, pasos y recorrido */
+@media (max-width:900px){
+  .demo-page .demo-grid>.next{order:2;margin-top:44px}
+  .demo-page .dm-tour{order:3;margin-top:40px}
+}
+
+/* ---------- Paso 2: adelanto de 12 s (video.js .vpreview) ----------
+   Angosto: video arriba y texto abajo. Con lugar (contenedor >= 400 px): texto al costado, abajo. */
+.demo-page .next li>div{flex:1 1 auto;min-width:0;container:dmstep/inline-size}
+.demo-page .dm-prev{display:grid;grid-template-columns:minmax(0,260px);gap:12px;margin-top:16px}
+.demo-page .dm-prev figcaption{font-size:14px;line-height:1.5;color:var(--text-secondary);max-width:40ch}
+.demo-page .next .vbadge{color:#F8FAFC}
+.demo-page .dm-prev .vpreview-m{box-shadow:0 30px 70px -36px #000}
+/* el video trae su rotulo abajo a la izquierda ("Solo lo que necesita a alguien"...): la pausa va arriba a la derecha */
+.demo-page .dm-prev .vpreview-btn::after{top:12px;right:12px;bottom:auto;left:auto}
+@container dmstep (min-width:400px){
+  .demo-page .dm-prev{grid-template-columns:minmax(0,min(300px,56%)) minmax(0,1fr);gap:18px;align-items:end}
+}
+@media (min-width:1800px){
+  @container dmstep (min-width:400px){.demo-page .dm-prev{grid-template-columns:minmax(0,min(340px,58%)) minmax(0,1fr)}}
+  .demo-page .dm-prev figcaption{font-size:15px}
+}
+/* celular acostado: el video entra entero en la altura de la pantalla */
+@media (orientation:landscape) and (max-height:560px){
+  .demo-page .dm-prev{grid-template-columns:minmax(0,220px) minmax(0,1fr);align-items:end;gap:18px}
+}
+
+/* ---------- Recorrido de 40 s (video.js .vthumb, abre el dialogo) ---------- */
+.demo-page .dm-tour{box-shadow:0 40px 90px -40px #000,0 0 0 1px rgba(148,163,184,.12)}
+
+/* ---------- Formulario: luz en el borde (fx beam-border) y brillo del boton al completarlo ----------
+   Al entrar: primero la luz da una vuelta al borde (4,2 s) y despues brilla el boton (no a la vez).
+   Mientras se escribe (foco adentro) la luz del borde no aparece: no distrae.
+   El brillo del boton vuelve a pasar cuando los campos obligatorios quedan completos (form:valid):
+   avisa que ya se puede enviar (en celulares el boton estaba fuera de la vista al cargar). */
+.demo-page .form .btn.primary:not(.small)::before{animation-delay:4.6s}
+.demo-page .form:focus-within>.fx-bb{visibility:hidden}
+@media (prefers-reduced-motion:no-preference){
+  /* al pasar el mouse gira (en fx.css la regla de :hover pierde contra la del brillo de entrada) */
+  .demo-page .form .btn.primary:not(.small):hover::before{animation:fx-spin 2.2s linear infinite;opacity:1}
+  .demo-page .form:valid .btn.primary::before{animation:dm-shim 4.4s linear .2s both}
+  .demo-page .form:valid .btn.primary:hover::before{animation:fx-spin 2.2s linear infinite;opacity:1}
+}
+@keyframes dm-shim{0%{opacity:0;--fx-a:0deg}12%,85%{opacity:1}to{opacity:0;--fx-a:720deg}}

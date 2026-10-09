@@ -62,7 +62,9 @@ html.vlock{overflow:hidden;padding-right:var(--vsb,0)}
   .has-ch .vdlg-ch ol{position:absolute;inset:0;flex-direction:column;scroll-snap-type:y proximity}
 }
 
-/* Vista previa: el poster da la caja; video, boton (play al centro, pausa en la esquina) y estados encima */
+/* Vista previa: el poster da la caja; video, boton (play al centro, pausa en la esquina) y estados encima.
+   La pausa va arriba a la derecha: abajo suelen ir el rotulo del video y la duracion. --vpause-inset la mueve
+   (ej. "auto auto 12px 12px" = abajo a la izquierda). */
 .vpreview{margin:0}
 .vpreview-m{position:relative;overflow:hidden;border:1px solid var(--line-strong);border-radius:16px;background:#0B1222;isolation:isolate}
 .vpreview-m>img{display:block;width:100%;height:auto}
@@ -71,7 +73,7 @@ html.vlock{overflow:hidden;padding-right:var(--vsb,0)}
 .vpreview-btn{position:absolute;inset:0;z-index:1;width:100%;padding:0;border:0;border-radius:inherit;background:none;cursor:pointer;visibility:hidden}
 .vx .vpreview-btn{visibility:visible}
 .vpreview-btn .vbadge{position:absolute;right:12px;bottom:12px}
-.vpreview-btn::after{content:"";position:absolute;left:12px;bottom:12px;width:44px;height:44px;border-radius:50%;background:linear-gradient(90deg,#0000 15px,#fff 0 20px,#0000 0 24px,#fff 0 29px,#0000 0) center/100% 16px no-repeat,#050810a8;opacity:0;transition:opacity .25s}
+.vpreview-btn::after{content:"";position:absolute;inset:var(--vpause-inset,12px 12px auto auto);width:44px;height:44px;border-radius:50%;background:linear-gradient(90deg,#0000 15px,#fff 0 20px,#0000 0 24px,#fff 0 29px,#0000 0) center/100% 16px no-repeat,#050810a8;opacity:0;transition:opacity .25s}
 .is-on .vplay{opacity:0;transform:scale(.85)}
 .is-on .vpreview-btn::after{opacity:1}
 .is-wait .vplay::after{content:"";position:absolute;inset:-6px}

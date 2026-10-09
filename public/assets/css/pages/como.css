@@ -7,12 +7,13 @@
 .como .page-hero-bg{--fx-mask:radial-gradient(60% 90% at 86% 24%,#000 6%,transparent 72%)}
 
 /* ---------- Los pasos ----------
-   Con la linea de luz de fx.js (trace) la raya fija de site.css sobra. En celulares los pasos van
-   en una columna con el numero a la izquierda: la linea baja por ese margen y no cruza el texto. */
+   Con la linea de luz de fx.js (trace) la raya fija de site.css sobra. Hasta 900 px los pasos van
+   en una columna con el numero a la izquierda: la linea baja por ese margen y no cruza el texto
+   (en la grilla de 2x2 de tabletas trace no tiene por donde pasar y quedaba sin efecto). */
 .como .timeline:has(>.fx-tr:not([hidden]))::before{display:none}
-@media (max-width:640px){
-  .como .timeline{row-gap:30px}
-  .como .timeline li{padding:5px 0 0 56px}
+@media (max-width:900px){
+  .como .timeline{grid-template-columns:minmax(0,1fr);row-gap:30px}
+  .como .timeline li{max-width:640px;padding:5px 0 0 56px}
   .como .timeline::before{display:block;left:18px;right:auto;top:18px;bottom:0;width:1px;height:auto;background:linear-gradient(180deg,var(--accent),var(--line-strong) 70%,transparent)}
 }
 

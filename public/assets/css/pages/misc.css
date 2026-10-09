@@ -1,0 +1,24 @@
+/* Enterprise SOC: ajustes de privacidad.html y 404.html, version 16.
+   Este archivo se copia en linea en TODAS las paginas (scripts/build.mjs): cada regla va
+   colgada de body.privacidad o body.notfound para no tocar las demas. Sin JS todo se ve; el
+   movimiento respeta prefers-reduced-motion (fx.js deja cada efecto en su estado final). */
+
+/* ---------- Privacidad: la grilla (fx grid) vive arriba a la derecha, lejos del titulo ---------- */
+.privacidad .page-hero-bg{--fx-mask:radial-gradient(55% 95% at 90% 16%,#000 6%,transparent 70%)}
+@media (max-width:640px){
+  .privacidad .page-hero-bg{--fx-mask:radial-gradient(85% 55% at 100% 0%,#000 4%,transparent 72%)}
+}
+
+/* ---------- Privacidad: riel de lectura (fx trace con data-marks="h2") ----------
+   fx.js pone la linea en el margen izquierdo, a clamp(10px, margen - 8px, 28px) del texto (el mismo
+   calculo que traceGeo). Cada titulo lleva un punto sobre esa linea que se enciende cuando la luz
+   llega a el. Sin fx.js no hay linea ni puntos y el texto queda igual. */
+html.fx .privacidad .prose>h2{position:relative}
+html.fx .privacidad .prose>h2::before{content:"";position:absolute;left:calc(-1 * clamp(10px,var(--gutter) - 8px,28px));top:.54em;width:9px;height:9px;margin:-4.5px 0 0 -4px;border-radius:50%;border:1px solid var(--line-strong);background:var(--canvas);pointer-events:none;transition:background .4s var(--ease-out),border-color .4s var(--ease-out),box-shadow .4s var(--ease-out)}
+html.fx .privacidad .prose>h2.fx-lit::before{border-color:var(--accent);background:var(--accent);box-shadow:0 0 0 4px var(--accent-tint)}
+@media (prefers-reduced-motion:reduce){html.fx .privacidad .prose>h2::before{transition:none}}
+
+/* ---------- 404: cielo con estrellas (fx stars) ----------
+   Van dentro del fondo de la cabecera, debajo del texto; se apagan hacia el titulo y hacia el pie
+   para no competir con la lectura ni cortar en seco contra el footer. */
+.notfound .page-hero-bg>.fx-cv{-webkit-mask-image:radial-gradient(120% 95% at 82% 22%,#000 22%,rgba(0,0,0,.35) 62%,transparent 96%);mask-image:radial-gradient(120% 95% at 82% 22%,#000 22%,rgba(0,0,0,.35) 62%,transparent 96%)}

@@ -2,7 +2,9 @@
    Chapter Scrubber y HoverPlayCard (Ruixen UI) de 21st.dev (ver /assets/CREDITOS.txt).
    data-video="dialog": abre UN <dialog> compartido con <video controls> y capitulos WebVTT. Esc/cerrar/fondo pausan y
    devuelven el foco. data-video="preview": poster + boton; el video muted+loop carga al primer gesto o cerca de la
-   pantalla con buena conexion; pausa visible, fuera de pantalla y con la pestaña oculta.
+   pantalla con buena conexion; pausa visible, fuera de pantalla y con la pestaña oculta. data-preload en la figura:
+   "auto" (por defecto, se baja entero para que el mouse arranque al instante), "metadata" (solo el comienzo) o
+   "none" (nada hasta el primer gesto).
    Con movimiento reducido, Save-Data o 2g nada carga ni arranca solo. Fuentes: data-sources="url codecs, url codecs"
    (AV1 primero) o JSON [{"src","type"}]. API window.VIDEO: open, close, init, pauseAll, pick, auto. */
 document.documentElement.classList.add('vx');
@@ -247,8 +249,9 @@ document.documentElement.classList.add('vx');
     if (s.btn) s.btn.setAttribute('aria-label', on ? s.off : s.lab);
   }
 
+  // pre: 'auto' | 'metadata' (precarga cerca de la pantalla) | 'none' (no se toca hasta el primer gesto)
   function attach(s, pre) {
-    if (!s.list.length) return;
+    if (!s.list.length || pre === 'none') return;
     if (!s.v) {
       const v = s.v = D.createElement('video');
       v.muted = v.defaultMuted = v.loop = v.playsInline = true;
@@ -264,7 +267,7 @@ document.documentElement.classList.add('vx');
         if (s.want) v.play().catch(noop);
       });
     }
-    if (pre) s.v.preload = 'auto';
+    if (pre) s.v.preload = pre;
     if (!s.v.getAttribute('src')) s.v.src = s.list[s.i].src;
   }
 
@@ -279,7 +282,7 @@ document.documentElement.classList.add('vx');
     if (!s.list.length) return fail2(s);
     all.forEach((o) => { if (o !== s && (playing(o.v) || o.want)) halt(o); });
     Object.assign(s, { mode, want: true, back: false, at: performance.now() });
-    attach(s); state(s);
+    attach(s, 'auto'); state(s);
     s.v.play().then(() => state(s), (e) => { if (e.name === 'NotAllowedError') { s.want = false; s.mode = ''; state(s); } });
   }
 
@@ -293,8 +296,10 @@ document.documentElement.classList.add('vx');
   function preview(f) {
     if (P.has(f)) return;
     const btn = f.querySelector('.vpreview-btn') || f.querySelector('button');
+    const pre = f.getAttribute('data-preload');
     const s = {
       f, btn, img: f.querySelector('img'), v: null, i: 0, mode: '', list: pick(parse(f.getAttribute('data-sources'))),
+      pre: pre === 'none' || pre === 'metadata' ? pre : 'auto',
       lab: (btn && btn.getAttribute('aria-label')) || 'Reproducir el adelanto', off: f.getAttribute('data-label-pause') || 'Pausar el adelanto'
     };
     P.set(f, s); all.push(s);
@@ -322,10 +327,10 @@ document.documentElement.classList.add('vx');
   function init(root) {
     if (!('IntersectionObserver' in W)) return;
     if (!nearIO) {
-      // cerca de la pantalla y con buena conexion: se precarga para que el mouse arranque al instante
+      // cerca de la pantalla y con buena conexion: se precarga (segun data-preload) para que el mouse arranque al instante
       nearIO = new IntersectionObserver((es) => es.forEach((e) => {
         const s = P.get(e.target);
-        if ((s.near = e.isIntersecting) && good()) attach(s, true);
+        if ((s.near = e.isIntersecting) && good()) attach(s, s.pre);
       }), { rootMargin: '400px 0px' });
       seeIO = new IntersectionObserver((es) => es.forEach((e) => {
         const s = P.get(e.target);
@@ -343,7 +348,7 @@ document.documentElement.classList.add('vx');
   D.addEventListener('visibilitychange', () => all.forEach((s) => { if (!D.hidden) resume(s); else if (playing(s.v)) halt(s, s.mode === 'click'); }));
   // si pasa a movimiento reducido, lo que arranco el mouse se detiene
   RM.addEventListener('change', () => { if (RM.matches) all.forEach((s) => { if (s.mode === 'hover') halt(s); }); });
-  W.addEventListener('load', () => { loaded = true; if (good()) all.forEach((s) => { if (s.near) attach(s, true); }); }, { once: true });
+  W.addEventListener('load', () => { loaded = true; if (good()) all.forEach((s) => { if (s.near) attach(s, s.pre); }); }, { once: true });
 
   init();
   W.VIDEO = { open, init, pauseAll, auto, pick: (l) => pick(typeof l === 'string' ? parse(l) : l), close: () => { if (dlg && dlg.open) dlg.close(); } };

@@ -16,6 +16,11 @@
 /* Que vigila: la palabra que rota se lee como parte del texto, un poco mas marcada */
 .home #vigila .rot{color:var(--text-primary);font-weight:600}
 
+/* Alerta de ejemplo: si el script nunca corre, el historial (Detectada, La toma, Resuelta) se lee
+   entero en vez de quedar atenuado. Con .sx --fs vale 0 y sections.js lo anima como siempre. */
+.home .ac-trail li:not(.on){opacity:calc(.4 + var(--fs) * .6)}
+@media (scripting:none){.home .ac-trail li{opacity:1}}
+
 /* Como empieza: la direccion del paso 1 vuelve a 8 px (la pastilla se ensancho en el SVG) */
 .home #como .art .t.sm{font-size:8px}
 

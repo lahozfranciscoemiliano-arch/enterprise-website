@@ -1,6 +1,6 @@
 /* Enterprise SOC: comportamiento comun de todas las paginas.
    Menu, reloj, entradas, titulos, linea de guardia, capturas, contadores, cinta, visor del panel,
-   recorrido, alerta que se resuelve, pasar la guardia y formulario. Todo respeta el movimiento reducido.
+   recorrido (con la camara de fx.js), alerta que se resuelve, pasar la guardia y formulario. Todo respeta el movimiento reducido.
    Regla: lo que se lee o se toca no se mueve; el movimiento vive en las entradas y en lo decorativo. */
 // html.sx = este script corre. El CSS solo deja las entradas ocultas mientras falte .sx durante 3 s
 // (si el script no llega, el contenido aparece solo). Va primero, antes que cualquier otra cosa.
@@ -216,15 +216,26 @@ document.documentElement.classList.add('sx');
     }));
   }
 
+  // ---------- Camara de fx sobre las capturas ----------
+  // La captura que se activa (pestaña del visor o capitulo del recorrido) se recorre con FX.camera; la que se
+  // va se detiene despues del fundido. Solo si la pagina la pide: data-cam en la captura o data-fx="camera"
+  // en ella o en su contenedor. Sin fx.js o con movimiento reducido no pasa nada (fx.js lo resuelve).
+  const camOn = (shot) => !!(shot && window.FX && (shot.hasAttribute('data-cam') || shot.closest('[data-fx~="camera"]')));
+  const camPlay = (shot) => { if (camOn(shot)) window.FX.camera(shot); };
+  const camStop = (shot) => { if (camOn(shot)) window.FX.camera(shot, { stop: true }); };
+
   // ---------- Visor del panel (pestañas con su leyenda) ----------
   document.querySelectorAll('[data-viewer]').forEach((viewer) => {
     const tabs = [...viewer.querySelectorAll('.tab')];
     const caption = viewer.querySelector('.shot-caption');
     function showShot(panel, on) {
       if (on) { panel.hidden = false; requestAnimationFrame(() => panel.classList.add('on')); }
-      else { panel.classList.remove('on'); setTimeout(() => { if (!panel.classList.contains('on')) panel.hidden = true; }, 650); }
+      else { panel.classList.remove('on'); setTimeout(() => { if (!panel.classList.contains('on')) { panel.hidden = true; camStop(panel); } }, 650); }
     }
     function select(tab, focus) {
+      const changed = tab.getAttribute('aria-selected') !== 'true';
+      // desde el primer cambio la camara la mueve la pestaña, cada vez: data-cam-auto (fx.js, al verse) la repetiria
+      if (changed) viewer.querySelectorAll('[data-cam-auto]').forEach((s) => s.removeAttribute('data-cam-auto'));
       tabs.forEach((t) => {
         const on = t === tab;
         t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1;
@@ -232,6 +243,7 @@ document.documentElement.classList.add('sx');
       });
       const panel = document.getElementById(tab.getAttribute('aria-controls'));
       if (caption && panel.dataset.caption) caption.innerHTML = panel.dataset.caption;
+      if (changed) camPlay(panel);
       if (focus) tab.focus();
     }
     tabs.forEach((t, i) => {
@@ -254,13 +266,40 @@ document.documentElement.classList.add('sx');
   if (chapters.length) {
     const shots = [...document.querySelectorAll('.scrolly .shot')];
     const dots = [...document.querySelectorAll('.scrolly-dots i')];
-    let cur = 0;
+    // Capturas diferidas: las inactivas pueden venir con data-src/data-srcset para no competir con la carga
+    // de la pagina. Se completan cuando su capitulo se activa (y la siguiente), o despues de load, al
+    // acercarse el recorrido. Sin JS no hacen falta: solo se ve la captura activa (la primera, con src).
+    const lazy = 'img[data-src], img[data-srcset]';
+    const promote = (shot) => {
+      const img = shot && shot.querySelector(lazy);
+      if (!img) return;
+      if (img.dataset.srcset) img.srcset = img.dataset.srcset;
+      if (img.dataset.src) img.src = img.dataset.src;
+      img.removeAttribute('data-srcset'); img.removeAttribute('data-src');
+    };
+    if (shots.some((s) => s.querySelector(lazy))) {
+      const near = () => {
+        const io = new IntersectionObserver((entries) => {
+          if (!entries.some((e) => e.isIntersecting)) return;
+          io.disconnect(); shots.forEach(promote);
+        }, { rootMargin: '75% 0px' });
+        io.observe(shots[0].closest('.scrolly') || shots[0]);
+      };
+      if (document.readyState === 'complete') near(); else addEventListener('load', near, { once: true });
+    }
+    let cur = 0, camAt = -1;
     const setStep = (n) => {
-      if (n === cur) return;
-      cur = n;
-      chapters.forEach((c, i) => c.classList.toggle('on', i === n));
-      shots.forEach((s, i) => s.classList.toggle('on', i === n));
-      dots.forEach((d, i) => d.classList.toggle('on', i === n));
+      promote(shots[n]); promote(shots[n + 1]);
+      if (n !== cur) {
+        const prev = shots[cur];
+        cur = n;
+        chapters.forEach((c, i) => c.classList.toggle('on', i === n));
+        shots.forEach((s, i) => s.classList.toggle('on', i === n));
+        dots.forEach((d, i) => d.classList.toggle('on', i === n));
+        setTimeout(() => { if (prev && !prev.classList.contains('on')) camStop(prev); }, 700);
+      }
+      // la camara corre cada vez que un capitulo pasa a ser el activo (tambien el primero, al llegar)
+      if (n !== camAt) { camAt = n; camPlay(shots[n]); }
     };
     chapters[0].classList.add('on');
     const chIO = new IntersectionObserver((entries) => {

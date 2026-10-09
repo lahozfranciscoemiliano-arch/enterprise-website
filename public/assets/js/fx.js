@@ -75,7 +75,10 @@ document.documentElement.classList.add('fx');
     if (!list.length) return;
     if (!nearIO) {
       nearIO = new IntersectionObserver(onNear, { rootMargin: '60% 0px' });
-      seeIO = new IntersectionObserver(onSee, { threshold: [0, 0.15, 0.6] });
+      // Umbrales finos: un elemento mas alto que la pantalla nunca llega a una proporcion alta, y su
+      // entrada depende de la parte de la pantalla que ocupa. Con saltos de 1,5x como maximo siempre hay
+      // un aviso entre t/x y 1/x (x = alto del elemento / alto de pantalla, t ≤ 0,6), asi que arranca.
+      seeIO = new IntersectionObserver(onSee, { threshold: [0, 0.01, 0.015, 0.02, 0.03, 0.045, 0.065, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.5, 0.6] });
     }
     var blur = [];
     list.forEach(function (el) {
@@ -134,14 +137,20 @@ document.documentElement.classList.add('fx');
       (S.get(el) || []).forEach(function (st) {
         if (!st.ready) return;
         st.vis = vis;
-        if (vis && !st.seen && amt >= (st.c.t == null ? 0.15 : st.c.t)) {
-          st.seen = 1;
-          // si una entrada falla, el elemento queda en su estado final (nunca oculto)
-          if (!st.done && st.c.go) try { st.c.go(st); } catch (err) { rest(st); st.el.classList.add('in'); }
-        }
+        if (vis && !st.seen) {
+          if (amt >= (st.c.t == null ? 0.15 : st.c.t)) enter(st);
+          // red de seguridad: si queda a la vista sin llegar al umbral, la entrada arranca igual a los 2,5 s
+          else if (!st.lz && !st.done && st.c.go) st.lz = setTimeout(function () { st.lz = 0; if (st.vis && !st.seen) enter(st); }, 2500);
+        } else if (!vis && st.lz) { clearTimeout(st.lz); st.lz = 0; }
         sync(st);
       });
     });
+  }
+  function enter(st) {
+    st.seen = 1;
+    clearTimeout(st.lz); st.lz = 0;
+    // si una entrada falla, el elemento queda en su estado final (nunca oculto)
+    if (!st.done && st.c.go) try { st.c.go(st); } catch (err) { rest(st); st.el.classList.add('in'); }
   }
   function sync(st) {
     if (!st.c.run || !st.ready) return;
@@ -282,6 +291,8 @@ document.documentElement.classList.add('fx');
   };
 
   // ---------- rotate: una palabra que cambia letra por letra; una vuelta y se queda en la primera ----------
+  // La caja mide lo que la palabra mas larga (el parrafo no se rearma en cada cambio: CLS 0). Por eso
+  // conviene usarlo al final de la oracion: en el medio, una palabra corta deja un hueco antes del resto.
   C.rotate = {
     t: 0.5, loop: 1,
     prep: function (st) {
@@ -620,6 +631,8 @@ document.documentElement.classList.add('fx');
   };
 
   // ---------- trace: una linea de luz que avanza con el scroll y enciende cada paso ----------
+  // La linea une las marcas (data-marks, por defecto .num) si estan en una sola fila o columna; si son
+  // anchas (titulos) va por el margen izquierdo. En una grilla de 2x2 no hay linea: solo se encienden.
   C.trace = {
     t: 0, loop: 1,
     prep: function (st) {
@@ -654,15 +667,19 @@ document.documentElement.classList.add('fx');
     if (pts.length && st.marks[0].offsetWidth > 80) g = { ax: 'y', s: 0, e: h, c: gutter, m: pts.map(function (p) { return p[1]; }) };
     else if (pts.length > 1) {
       var a = pts[0], b = pts[pts.length - 1], ax = Math.abs(b[0] - a[0]) > Math.abs(b[1] - a[1]) ? 0 : 1;
-      // si los pasos no estan en una sola fila o columna (grilla de 2x2), no hay linea
-      if (!pts.every(function (p) { return Math.abs(p[1 - ax] - a[1 - ax]) < 8; })) { st.r.hidden = true; st.g = null; return; }
-      g = { ax: ax ? 'y' : 'x', s: a[ax], e: b[ax], c: a[1 - ax], m: pts.map(function (p) { return p[ax]; }) };
+      // la linea necesita los pasos en una sola fila o columna; en una grilla (2x2) no hay linea
+      // y cada numero se enciende cuando su fila llega a la misma altura de lectura
+      if (!pts.every(function (p) { return Math.abs(p[1 - ax] - a[1 - ax]) < 8; })) g = { ax: 'y', s: 0, e: h, c: 0, m: pts.map(function (p) { return p[1]; }), no: 1 };
+      else g = { ax: ax ? 'y' : 'x', s: a[ax], e: b[ax], c: a[1 - ax], m: pts.map(function (p) { return p[ax]; }) };
     } else g = { ax: 'y', s: 0, e: h, c: gutter, m: [] };
     var len = Math.max(1, g.e - g.s), r = st.r;
-    st.g = g; r.hidden = false;
+    st.g = g; r.hidden = !!g.no;
     r.className = 'fx-tr fx-tr-' + g.ax;
     // posicion con transform (no cuenta como salto de diagramacion si cambia al redimensionar)
     r.style.cssText = 'transform:translate(' + (g.ax === 'x' ? g.s + 'px,' + g.c : g.c + 'px,' + g.s) + 'px);' + (g.ax === 'x' ? 'width:' : 'height:') + len + 'px;--fx-l:' + len + 'px';
+    // borde de la linea de 1 px, medido desde el borde del contenedor: la pagina puede poner sus marcas
+    // con left:var(--fx-x) (o top:var(--fx-y)) y centrar una marca de 9 px con margin-left:-4px
+    if (!g.no) el.style.setProperty(g.ax === 'x' ? '--fx-y' : '--fx-x', g.c + 'px');
     st.p = -1;
     if (reduced) traceSet(st, 1); else onScroll();
   }
