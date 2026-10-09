@@ -4,6 +4,9 @@
    Regla: lo que se lee o se toca no se mueve; el movimiento vive en las entradas y en lo decorativo. */
 // html.sx = este script corre. El CSS solo deja las entradas ocultas mientras falte .sx durante 3 s
 // (si el script no llega, el contenido aparece solo). Va primero, antes que cualquier otra cosa.
+// Si llego despues de esa red de seguridad (--fs ya en 1), html.sx-late deja el recorrido como ya se veia
+// (todas las capturas, ver site.css) para no moverlo bajo el lector. Antes de los 2,9 s no puede pasar.
+if (performance.now() > 2900 && getComputedStyle(document.documentElement).getPropertyValue('--fs').trim() === '1') document.documentElement.classList.add('sx-late');
 document.documentElement.classList.add('sx');
 (function () {
   'use strict';

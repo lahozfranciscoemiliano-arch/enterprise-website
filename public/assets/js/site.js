@@ -173,8 +173,9 @@
   const CAP_AT = 4.45;       // s: la red ya esta armada, aparece el rotulo "EJEMPLO"
   const SHORT_AT = 4;        // s: en las visitas siguientes solo se arma la red (como SHORT en escritorio)
   const STALL = 10000;       // ms sin primer cuadro: queda el cuadro final
+  const STALL_PLAY = 4000;   // ms sin cuadro nuevo ya empezado (la red se corto a mitad): queda el cuadro final
   const frameBox = hero.querySelector('.hero-frame');
-  let vid = null, vcv = null, vMode = null, vState = 'idle', vTimer = 0, vScheduled = false;
+  let vid = null, vcv = null, vMode = null, vState = 'idle', vTimer = 0, vScheduled = false, vWake = null;
   let loaded = document.readyState === 'complete';
   // si este archivo llega tarde (red muy lenta), el CSS ya mostro el cuadro final: no se reemplaza
   const lateJs = performance.now() > 5500;
@@ -195,7 +196,7 @@
     hero.classList.remove('v-on');
   }
   function dropVideo(keepCanvas) {
-    clearTimeout(vTimer);
+    clearTimeout(vTimer); vWake = null;
     if (vid) { const v = vid; vid = null; v.pause(); v.removeAttribute('src'); try { v.load(); } catch (e) { /* nada */ } v.remove(); }
     if (vcv && !keepCanvas) { vcv.remove(); vcv = null; }
   }
@@ -227,16 +228,26 @@
     c.setAttribute('aria-hidden', 'true');
     const g = c.getContext('2d', { alpha: false });
     if (!g) { videoFail(); return; }
-    let drawn = false, lastT = -1, pending = false;
+    let drawn = false, lastT = -1, pending = false, lastAt = performance.now();
+    // vigilancia: si en pantalla (y con la pestana visible) no llega un cuadro nuevo a tiempo, queda el cuadro final.
+    // Fuera de pantalla no se rearma (no quedan temporizadores); videoVisibility la reinicia al volver.
+    const watch = () => {
+      vTimer = 0;
+      if (vid !== v || !onScreen || document.hidden) return;
+      const left = (drawn ? STALL_PLAY : STALL) - (performance.now() - lastAt);
+      if (left <= 0) { videoFail(); return; }
+      vTimer = setTimeout(watch, left);
+    };
+    vWake = () => { lastAt = performance.now(); clearTimeout(vTimer); vTimer = setTimeout(watch, drawn ? STALL_PLAY : STALL); };
     // un cuadro nuevo del video -> al canvas (requestVideoFrameCallback; si no hay, requestAnimationFrame)
     const draw = () => {
       pending = false;
       if (vid !== v) return;
       const t = v.currentTime;
       if (t !== lastT) {
-        lastT = t;
+        lastT = t; lastAt = performance.now();
         try { g.drawImage(v, 0, 0, c.width, c.height); } catch (e) { videoFail(); return; }
-        if (!drawn) { drawn = true; clearTimeout(vTimer); hero.classList.add('v-on'); }
+        if (!drawn) { drawn = true; hero.classList.add('v-on'); vWake(); }
         if (t >= CAP_AT) hero.classList.add('cap-on');
       }
       if (!v.ended && !v.paused) next();
@@ -261,7 +272,7 @@
     v.src = pick[0] + (seen ? '#t=' + SHORT_AT : '');
     frameBox.appendChild(c);
     frameBox.appendChild(v);
-    vTimer = setTimeout(() => { if (!drawn) videoFail(); }, STALL);
+    vWake();
     const pr = v.play();
     if (pr && pr.catch) pr.catch(() => { if (vid === v) videoFail(); });   // sin reproduccion automatica: queda el poster final
   }
@@ -269,7 +280,7 @@
   function videoVisibility() {
     if (vState === 'wait' && onScreen && !document.hidden) { scheduleVideo(); return; }
     if (vState !== 'play' || !vid) return;
-    if (onScreen && !document.hidden) { const pr = vid.play(); if (pr && pr.catch) pr.catch(() => { /* reintenta al volver */ }); }
+    if (onScreen && !document.hidden) { const pr = vid.play(); if (pr && pr.catch) pr.catch(() => { /* reintenta al volver */ }); if (vWake) vWake(); }
     else vid.pause();
   }
   function scheduleVideo() {

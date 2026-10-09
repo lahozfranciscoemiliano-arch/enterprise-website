@@ -343,8 +343,9 @@ document.documentElement.classList.add('fx');
     },
     run: function (st, on) { if (!st.nat && !st.skip) scroller(st, on); },
     upd: function (st, r, vh) {
-      // mismo rango que la version CSS: cover 12% a cover 52%
-      var p = clamp(((vh - r.top) / (vh + r.height) - 0.12) / 0.4, 0, 1);
+      // mismo rango que la version CSS: entry 0% (borde de arriba en el de abajo de la pantalla) a entry 100%
+      // (el parrafo entro entero): con el parrafo completo a la vista todas las palabras estan encendidas
+      var p = clamp((vh - r.top) / (r.height || 1), 0, 1);
       if (Math.abs(p - st.p) > 0.004) { st.p = p; st.el.style.setProperty('--fx-p', p.toFixed(3)); }
     },
     fin: function (st) { if (!st.skip) st.el.style.setProperty('--fx-p', 1); }
@@ -378,9 +379,14 @@ document.documentElement.classList.add('fx');
       // Lecturas despues del layout (ResizeObserver, antes de pintar): sin layout forzado en el arranque
       onResize(box, function () {
         var cs = getComputedStyle(el), src = el, bg = 'none';
-        // texto con degrade (background-clip:text): las columnas reciben el mismo fondo, linea por linea
-        for (var j = 0; cs.webkitTextFillColor === 'rgba(0, 0, 0, 0)' && j < 4 && src && bg === 'none'; j++) { bg = getComputedStyle(src).backgroundImage; if (bg === 'none') src = src.parentElement; }
-        if (bg !== 'none') { box.style.setProperty('--fx-bg', bg); if (src === el) el.style.backgroundImage = 'none'; }
+        // texto con degrade (background-clip:text): las columnas reciben el mismo fondo, linea por linea.
+        // Se busca una sola vez: despues el elemento ya no tiene fondo propio (se le quita abajo) y, en un
+        // cambio de ancho, seguir subiendo copiaria el fondo de la seccion y el numero quedaria invisible
+        if (st.bg == null) {
+          for (var j = 0; cs.webkitTextFillColor === 'rgba(0, 0, 0, 0)' && j < 4 && src && bg === 'none'; j++) { bg = getComputedStyle(src).backgroundImage; if (bg === 'none') src = src.parentElement; }
+          st.bg = bg;
+          if (bg !== 'none') { box.style.setProperty('--fx-bg', bg); if (src === el) el.style.backgroundImage = 'none'; }
+        }
         // corrimiento inicial: el numero largo arranca en el mismo borde que el final (segun la alineacion)
         var lw = lead.offsetWidth, al = cs.textAlign;
         if (st.rolled || !lw) return;
@@ -868,11 +874,14 @@ document.documentElement.classList.add('fx');
         x.l.classList.add('fx-on');
         if (!x.t.length) { later(st, next, rnd(220, 380)); return; }
         var q = 0, c = 0, typing = !x.l.querySelector('.cursor');
+        // la linea guarda el alto del texto completo mientras se escribe: si el comando ocupa dos renglones
+        // (pantallas angostas) no se achica al vaciarla ni empuja lo de abajo al completarse (CLS 0)
+        x.l.style.minHeight = x.l.getBoundingClientRect().height + 'px';
         x.t.forEach(function (p) { p[0].nodeValue = ''; });
         if (typing) x.l.classList.add('fx-typing');
         (function type() {
           var p = x.t[q];
-          if (!p) { x.l.classList.remove('fx-typing'); later(st, next, 320); return; }
+          if (!p) { x.l.classList.remove('fx-typing'); x.l.style.minHeight = ''; later(st, next, 320); return; }
           p[0].nodeValue = p[1].slice(0, ++c);
           if (c >= p[1].length) { q++; c = 0; }
           later(st, type, speed * rnd(0.6, 1.5));
@@ -881,28 +890,29 @@ document.documentElement.classList.add('fx');
       next();
     },
     fin: function (st) {
-      st.lines.forEach(function (x) { x.l.classList.add('fx-on'); x.l.classList.remove('fx-typing'); x.t.forEach(function (p) { p[0].nodeValue = p[1]; }); });
+      st.lines.forEach(function (x) { x.l.classList.add('fx-on'); x.l.classList.remove('fx-typing'); x.l.style.minHeight = ''; x.t.forEach(function (p) { p[0].nodeValue = p[1]; }); });
     }
   };
 
-  // ---------- feed: avisos que llegan de a uno arriba (alto fijo, maximo 4, una vuelta) ----------
-  // Sin saltos de diagramacion (CLS 0): los avisos van en posicion absoluta y se mueven solo con transform.
+  // ---------- feed: avisos que llegan de a uno arriba (alto fijo, una vuelta) ----------
+  // Sin saltos de diagramacion (CLS 0): la lista conserva el alto con el que se pinto (el de todos los avisos
+  // del HTML, que es tambien el estado final) y los avisos van en posicion absoluta, movidos solo con transform.
+  // Los que todavia no llegaron solo se ocultan a la vista (opacity): siguen en el arbol de accesibilidad.
   C.feed = {
     pre: 1, t: 0.35,
     prep: function (st) {
-      var el = st.el, items = arr(el.children), max = Math.min(num(el, 'max', 4), items.length);
-      if (st.first) return; // ya estaba a la vista: queda la lista completa, sin cambiar el alto
-      st.max = max; st.n = items.length;
-      // se mide en el ResizeObserver (layout ya hecho): alto fijo para max avisos, alto de cada aviso, margenes
+      var el = st.el, items = arr(el.children);
+      if (st.first || items.length < 2) return; // ya estaba a la vista: queda la lista completa
+      st.n = items.length;
+      // se mide en el ResizeObserver (layout ya hecho): alto de la lista, alto de cada aviso, margenes
       onResize(el, function () {
         var cs = getComputedStyle(el);
         if (!st.items) {
-          var R = el.getBoundingClientRect(), last = items[max - 1].getBoundingClientRect();
-          st.H = Math.ceil(last.bottom - R.top + (parseFloat(cs.paddingBottom) || 0));
+          st.H = el.getBoundingClientRect().height;
           el.style.height = st.H + 'px';
           st.gap = parseFloat(cs.rowGap) || 0;
           st.items = items;
-          st.list = st.done ? items.slice(0, max) : [];
+          st.list = st.done ? items.slice() : [];
           st.hs = items.map(function (it) { return it.offsetHeight; });
           st.S = feedSum(st);
           ['Top', 'Left', 'Right'].forEach(function (k) { el.style.setProperty('--fx-p' + k[0], cs['padding' + k]); });
@@ -912,7 +922,7 @@ document.documentElement.classList.add('fx');
           requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.remove('fx-now'); }); });
           st.on = false; sync(st);
         } else {
-          // cambio de ancho: se vuelven a medir los avisos visibles y el alto fijo acompaña
+          // cambio de ancho: se vuelven a medir los avisos y el alto fijo acompaña
           st.hs = st.items.map(function (it, i) { return it.offsetHeight || st.hs[i]; });
           el.style.height = st.H + feedSum(st) - st.S + 'px';
           feedPlace(st);
@@ -926,30 +936,28 @@ document.documentElement.classList.add('fx');
     go: function (st) { st.go = 1; st.on = false; sync(st); },
     run: function (st, on) {
       clearTimeout(st.tm);
-      if (on && st.go && st.items) st.tm = setTimeout(function () { feedStep(st); }, st.n === st.items.length ? 250 : num(st.el, 'interval', 1100));
+      // 5 avisos: 250 ms + 4 x 1000 ms + la ultima entrada (0,52 s): termina antes de 5 s (WCAG 2.2.2)
+      if (on && st.go && st.items) st.tm = setTimeout(function () { feedStep(st); }, st.n === st.items.length ? 250 : num(st.el, 'interval', 1000));
     },
     fin: function (st) {
       if (!st.items) return;
-      st.list = st.items.slice(0, st.max);
-      st.items.forEach(function (it) { it.getAnimations().forEach(function (a) { a.cancel(); }); it.classList.toggle('fx-fi', st.list.indexOf(it) < 0); });
+      st.list = st.items.slice();
+      st.items.forEach(function (it) { it.getAnimations().forEach(function (a) { a.cancel(); }); it.classList.remove('fx-fi'); });
       feedPlace(st);
     }
   };
-  function feedSum(st) { return st.hs.slice(0, st.max).reduce(function (a, b) { return a + b; }, 0); }
+  function feedSum(st) { return st.hs.reduce(function (a, b) { return a + b; }, 0); }
   function feedPlace(st) {
     var y = 0;
     st.list.forEach(function (it) { it.style.transform = 'translateY(' + y + 'px)'; y += st.hs[st.items.indexOf(it)] + st.gap; });
   }
   function feedStep(st) {
-    var it = st.items[--st.n], l = st.list;
-    l.unshift(it);
+    var it = st.items[--st.n];
+    st.list.unshift(it);
     it.classList.remove('fx-fi');
-    it.animate([{ opacity: 0, transform: 'translateY(-12px) scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: 520, easing: EASE, composite: 'add' });
+    it.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 520, easing: EASE });
+    it.animate([{ transform: 'translateY(-12px) scale(.96)' }, { transform: 'none' }], { duration: 520, easing: EASE, composite: 'add' });
     feedPlace(st);
-    if (l.length > st.max) {
-      var old = l.pop();
-      old.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' }).onfinish = function (e) { old.classList.add('fx-fi'); e.target.cancel(); };
-    }
     if (st.n <= 0) finish(st); else { st.on = false; sync(st); }
   }
 

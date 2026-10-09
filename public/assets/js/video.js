@@ -1,8 +1,8 @@
 /* Enterprise SOC: reproductores de video, v16. Propio, sin dependencias; inspirado en Hero Video Dialog (Magic UI),
    Chapter Scrubber y HoverPlayCard (Ruixen UI) de 21st.dev (ver /assets/CREDITOS.txt).
    data-video="dialog": abre UN <dialog> compartido con <video controls> y capitulos WebVTT. Esc/cerrar/fondo pausan y
-   devuelven el foco. data-video="preview": poster + boton; el video muted+loop carga al primer gesto o cerca de la
-   pantalla con buena conexion; pausa visible, fuera de pantalla y con la pestaña oculta. data-preload en la figura:
+   devuelven el foco. data-video="preview": poster + boton; el video muted+loop carga al primer gesto o, con mouse,
+   cerca de la pantalla con buena conexion; pausa visible, fuera de pantalla y con la pestaña oculta. data-preload en la figura:
    "auto" (por defecto, se baja entero para que el mouse arranque al instante), "metadata" (solo el comienzo) o
    "none" (nada hasta el primer gesto).
    Con movimiento reducido, Save-Data o 2g nada carga ni arranca solo. Fuentes: data-sources="url codecs, url codecs"
@@ -251,7 +251,8 @@ document.documentElement.classList.add('vx');
 
   // pre: 'auto' | 'metadata' (precarga cerca de la pantalla) | 'none' (no se toca hasta el primer gesto)
   function attach(s, pre) {
-    if (!s.list.length || pre === 'none') return;
+    // sin fuentes, o todas fallaron (fail2): no se vuelve a pedir nada solo
+    if (!s.list[s.i] || pre === 'none') return;
     if (!s.v) {
       const v = s.v = D.createElement('video');
       v.muted = v.defaultMuted = v.loop = v.playsInline = true;
@@ -272,14 +273,20 @@ document.documentElement.classList.add('vx');
   }
 
   function fail2(s) {
-    s.want = false;
+    s.want = s.back = false;
     if (s.v) { s.v.removeAttribute('src'); s.v.load(); state(s); }
     s.f.classList.add('is-err');
     if (!s.msg) { s.msg = mk('p', 'vmsg', s.img ? s.img.parentNode : s.f); s.msg.setAttribute('role', 'alert'); s.msg.textContent = ERR; }
+    s.msg.hidden = false;
   }
 
   function start(s, mode) {
     if (!s.list.length) return fail2(s);
+    if (s.i >= s.list.length) {
+      // ya fallaron todas: solo un clic/toque/tecla reintenta desde la primera (el mouse al pasar no)
+      if (mode !== 'click') return;
+      s.i = 0; s.f.classList.remove('is-err'); if (s.msg) s.msg.hidden = true;
+    }
     all.forEach((o) => { if (o !== s && (playing(o.v) || o.want)) halt(o); });
     Object.assign(s, { mode, want: true, back: false, at: performance.now() });
     attach(s, 'auto'); state(s);
@@ -323,14 +330,16 @@ document.documentElement.classList.add('vx');
   }
 
   const resume = (s) => { if (s.back && s.seen && !D.hidden && !RM.matches) start(s, 'click'); };
+  // precarga (segun data-preload) cerca de la pantalla, solo con mouse y buena conexion: es para que pasar el mouse
+  // lo arranque al instante; en tactil se reproduce al tocar, asi que nada se baja hasta el primer toque
+  const warm = (s) => { if (s.near && FINE.matches && good()) attach(s, s.pre); };
 
   function init(root) {
     if (!('IntersectionObserver' in W)) return;
     if (!nearIO) {
-      // cerca de la pantalla y con buena conexion: se precarga (segun data-preload) para que el mouse arranque al instante
       nearIO = new IntersectionObserver((es) => es.forEach((e) => {
         const s = P.get(e.target);
-        if ((s.near = e.isIntersecting) && good()) attach(s, s.pre);
+        s.near = e.isIntersecting; warm(s);
       }), { rootMargin: '400px 0px' });
       seeIO = new IntersectionObserver((es) => es.forEach((e) => {
         const s = P.get(e.target);
@@ -348,7 +357,13 @@ document.documentElement.classList.add('vx');
   D.addEventListener('visibilitychange', () => all.forEach((s) => { if (!D.hidden) resume(s); else if (playing(s.v)) halt(s, s.mode === 'click'); }));
   // si pasa a movimiento reducido, lo que arranco el mouse se detiene
   RM.addEventListener('change', () => { if (RM.matches) all.forEach((s) => { if (s.mode === 'hover') halt(s); }); });
-  W.addEventListener('load', () => { loaded = true; if (good()) all.forEach((s) => { if (s.near) attach(s, s.pre); }); }, { once: true });
+  // Posters diferidos (img[data-src] dentro de un componente de video): se piden despues de 'load'
+  // para no competir con las fuentes y la primera pintura. Sin JS se ve la copia del <noscript>.
+  function posters() {
+    D.querySelectorAll('[data-video] img[data-src]').forEach((i) => { i.src = i.dataset.src; i.removeAttribute('data-src'); });
+  }
+  if (loaded) posters();
+  W.addEventListener('load', () => { loaded = true; posters(); all.forEach(warm); }, { once: true });
 
   init();
   W.VIDEO = { open, init, pauseAll, auto, pick: (l) => pick(typeof l === 'string' ? parse(l) : l), close: () => { if (dlg && dlg.open) dlg.close(); } };

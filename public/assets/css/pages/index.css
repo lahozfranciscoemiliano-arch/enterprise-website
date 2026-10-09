@@ -23,11 +23,3 @@
 
 /* Como empieza: la direccion del paso 1 vuelve a 8 px (la pastilla se ensancho en el SVG) */
 .home #como .art .t.sm{font-size:8px}
-
-/* Alto reservado de #pantalla para content-visibility (site.css): +68 px por la fila del recorrido.
-   Mismo orden de cortes que site.css para que cada uno pise al suyo. */
-.home #pantalla{--h:1353px}
-@media (min-width:1800px){.home #pantalla{--h:1518px}}
-@media (max-width:1100px){.home #pantalla{--h:1158px}}
-@media (max-width:900px){.home #pantalla{--h:988px}}
-@media (max-width:640px){.home #pantalla{--h:888px}}

@@ -32,10 +32,11 @@ html.fx [data-fx~="cut"]:not(.in) .fx-p{transform:translateY(112%)}
 .fx-rw.on>i{transform:none;transition:transform .6s var(--ease-out) calc(var(--i) * 28ms)}
 .fx-rw.out>i{transform:translateY(-115%);transition:transform .45s var(--ease-in-out) calc(var(--i) * 18ms)}
 
-/* scroll-words: cada palabra va de 20% a 100% con el scroll */
+/* scroll-words: cada palabra va de 20% a 100% con el scroll. Termina cuando el parrafo entro entero a la
+   pantalla (entry 100%): si el lector se detiene con el parrafo a la vista, todo se lee con contraste pleno */
 .fx-sw{opacity:calc(.2 + .8 * clamp(0, (var(--fx-p) * (var(--n) + 4) - var(--i)) / 4, 1))}
 .fx-swj .fx-sw{transition:opacity .25s linear}
-@supports (animation-timeline:view()){.fx-swn{animation:fx-p linear both;animation-timeline:view();animation-range:cover 12% cover 52%}}
+@supports (animation-timeline:view()){.fx-swn{animation:fx-p linear both;animation-timeline:view();animation-range:entry 0% entry 100%}}
 @keyframes fx-p{from{--fx-p:0}to{--fx-p:1}}
 
 /* odometer: una columna por digito; hereda el degradé del texto si lo hay. Solo transform y opacity (CLS 0) */
@@ -159,7 +160,8 @@ html.fx .fx-tl:not(.fx-on){opacity:0;transform:translateY(4px)}
 .fx-typing::after{content:"";display:inline-block;width:.55em;height:1.05em;margin-left:3px;vertical-align:-.15em;background:var(--accent);animation:caret 1s steps(1) infinite}
 html.fx .fx-feed{position:relative;overflow:hidden}
 html.fx .fx-feed>*{position:absolute!important;top:var(--fx-pT,0);left:var(--fx-pL,0);right:var(--fx-pR,0);margin:0;transition:transform .52s var(--ease-out)}
-html.fx .fx-fi{display:none!important}
+/* los avisos que no llegaron se ocultan solo a la vista: siguen en el arbol de accesibilidad */
+html.fx .fx-fi{opacity:0!important;pointer-events:none}
 
 /* camera: la captura se recorta en su marco */
 [data-fx~="camera"],[data-fx~="camera"] .shot{overflow:hidden}

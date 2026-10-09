@@ -1,7 +1,8 @@
-Enterprise SOC - Créditos de los efectos de movimiento (assets/js/fx.js y la hoja fx.css)
+Enterprise SOC - Créditos de los efectos de movimiento y de video
+(assets/js/fx.js, assets/js/video.js y las hojas fx.css y video.css)
 =====================================================================================
 
-Todo el código de fx.js y de fx.css es una implementación original, escrita desde cero en
+Todo el código de fx.js, video.js, fx.css y video.css es una implementación original, escrita desde cero en
 JavaScript y CSS sin dependencias. No se copió código de los componentes que se nombran abajo:
 se tomaron como referencia visual del efecto ("inspirado en", no "copiado de"). Los componentes
 originales están escritos en React; esta versión no usa React ni ninguna biblioteca externa.
@@ -67,6 +68,18 @@ spotlight          Inspirado en Spotlight de Manu Arora (Aceternity UI)
                    (ver la nota sobre Aceternity UI).
 camera             Sin componente de referencia: idea y código propios (paneo y zoom con
                    Web Animations sobre las capturas del panel).
+
+Componente video   Referencia
+-----------------  ------------------------------------------------------------------------------
+dialog             Inspirado en Hero Video Dialog de Dillion Verma (Magic UI)
+                   (https://21st.dev/@dillionverma/components/hero-video-dialog), licencia listada: MIT.
+capítulos          Inspirado en Chapter Scrubber de Ruixen (Ruixen UI)
+                   (https://21st.dev/@ruixen.ui/components/chapter-scrubber), licencia listada: MIT.
+preview            Inspirado en HoverPlayCard de Ruixen (Ruixen UI)
+                   (https://21st.dev/@ruixen.ui/components/hover-play-card), licencia listada:
+                   "unknown" (desconocida); por eso solo se tomó la idea del efecto.
+
+Los videos, los pósters y los capítulos (WebVTT) son del sitio.
 
 Las capturas, el mapa, los textos, los colores y las tipografías son del sitio y no forman parte de
 ningún componente de terceros.

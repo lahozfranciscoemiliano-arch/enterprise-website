@@ -67,7 +67,8 @@ html.vlock{overflow:hidden;padding-right:var(--vsb,0)}
    (ej. "auto auto 12px 12px" = abajo a la izquierda). */
 .vpreview{margin:0}
 .vpreview-m{position:relative;overflow:hidden;border:1px solid var(--line-strong);border-radius:16px;background:#0B1222;isolation:isolate}
-.vpreview-m>img{display:block;width:100%;height:auto}
+.vpreview-m>img,.vpreview-m>noscript>img{display:block;width:100%;height:auto}
+@media (scripting:none){[data-video] img[data-src]{display:none}}
 .vpreview-m>video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s}
 .is-v .vpreview-m>video{opacity:1}
 .vpreview-btn{position:absolute;inset:0;z-index:1;width:100%;padding:0;border:0;border-radius:inherit;background:none;cursor:pointer;visibility:hidden}
