@@ -6,6 +6,8 @@
 //   assets/css/fx.css     efectos y animaciones (assets/js/fx.js)
 //   assets/css/video.css  reproductores de video (assets/js/video.js)
 //   assets/css/pages/*.css  ajustes de una pagina puntual (orden alfabetico)
+// Un archivo cuyo primer comentario dice "paginas: a.html b.html" va solo en esas paginas;
+// sin esa linea va en todas.
 // Despues de editar cualquiera hay que correr:  node scripts/build.mjs
 // Con --check no escribe nada y sale con error si alguna pagina quedo desactualizada.
 // Con --only=pagina.html (repetible) toca solo esas paginas.
@@ -34,15 +36,28 @@ export function cssSources(root = 'public') {
   return list.filter((f) => existsSync(f));
 }
 
+// Paginas a las que se limita un archivo CSS (null = todas), segun "paginas: ..." en su primer comentario.
+export function cssPages(text) {
+  const m = /^\s*\/\*[\s\S]*?\*\//.exec(text);
+  const d = m && /paginas:\s*([^\n*]+)/i.exec(m[0]);
+  return d ? d[1].split(/[\s,]+/).filter((x) => x.endsWith('.html')) : null;
+}
+
+export function cssFor(root, page) {
+  return inlineCss(cssSources(root).map((f) => readFileSync(f, 'utf8'))
+    .filter((t) => { const pages = cssPages(t); return !pages || pages.includes(page); })
+    .join('\n'));
+}
+
 // Devuelve las paginas cuyo <style> no coincide con las fuentes (y las actualiza si write=true).
 export function syncPages(root = 'public', { write = false, only = null } = {}) {
-  const css = inlineCss(cssSources(root).map((f) => readFileSync(f, 'utf8')).join('\n'));
   const out = [];
   for (const f of readdirSync(root).filter((f) => f.endsWith('.html') && (!only || only.includes(f))).sort()) {
     const path = join(root, f);
     const html = readFileSync(path, 'utf8');
     const n = (html.match(STYLE) || []).length;
     if (n !== 1) throw new Error(`${f}: se esperaba un solo <style>, hay ${n}`);
+    const css = cssFor(root, f);
     const next = html.replace(STYLE, () => `<style>${css}</style>`);
     if (next !== html) {
       out.push(f);

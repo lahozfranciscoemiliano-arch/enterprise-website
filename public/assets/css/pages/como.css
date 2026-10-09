@@ -1,6 +1,6 @@
+/* paginas: como-funciona.html (scripts/build.mjs lo copia solo en esas paginas) */
 /* Enterprise SOC: ajustes de como-funciona.html, version 16.
-   Este archivo se copia en linea en TODAS las paginas (scripts/build.mjs): cada regla va
-   colgada de body.como para no tocar las demas. Sin JS todo se ve; el movimiento respeta
+   Las reglas van colgadas de body.como. Sin JS todo se ve; el movimiento respeta
    prefers-reduced-motion (fx.js deja cada efecto en su estado final). */
 
 /* ---------- Cabecera: la grilla vive arriba a la derecha, lejos del titulo ---------- */

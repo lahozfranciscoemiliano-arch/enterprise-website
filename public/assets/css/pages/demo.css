@@ -1,6 +1,6 @@
+/* paginas: demo.html (scripts/build.mjs lo copia solo en esas paginas) */
 /* Enterprise SOC: ajustes de demo.html, version 16.
-   Este archivo se copia en linea en TODAS las paginas (scripts/build.mjs): cada regla va
-   colgada de body.demo-page para no tocar las demas. Sin JS todo se ve (los efectos de fx.js
+   Las reglas van colgadas de body.demo-page. Sin JS todo se ve (los efectos de fx.js
    y video.js solo agregan cosas); el movimiento respeta prefers-reduced-motion. */
 
 /* ---------- Pantalla completa ----------

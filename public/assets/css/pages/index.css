@@ -1,5 +1,5 @@
-/* Portada (index.html): ajustes propios de la pagina. Todo va bajo .home, porque este archivo
-   se copia en linea en todas las paginas (scripts/build.mjs). */
+/* paginas: index.html (scripts/build.mjs lo copia solo en esas paginas) */
+/* Portada (index.html): ajustes propios de la pagina. Todo va bajo .home. */
 
 /* Cinta "EN VIVO · DEMO": en celulares queda la etiqueta corta "DEMO" (antes se ocultaba entera) */
 @media (max-width:640px){

@@ -187,7 +187,7 @@ document.documentElement.classList.add('fx');
     raf = 0;
     for (var i = 0; i < loops.length; i++) {
       var st = loops[i];
-      if (t - st.last >= st.iv - 4) { var dt = st.last ? Math.min(t - st.last, 200) : 16; st.last = t; st.draw(st, t, dt); }
+      if (st.w && t - st.last >= st.iv - 4) { var dt = st.last ? Math.min(t - st.last, 200) : 16; st.last = t; st.draw(st, t, dt); }
     }
     if (loops.length) raf = requestAnimationFrame(tick);
   }
@@ -520,13 +520,19 @@ document.documentElement.classList.add('fx');
     cv.classList.add('fx-cv'); hide(cv);
     st.ctx = cv.getContext('2d'); st.iv = 1000 / fps;
     onResize(cv, function (e) {
-      var w = Math.round(e.contentRect.width), h = Math.round(e.contentRect.height), d = Math.min(W.devicePixelRatio || 1, 1.5);
-      if (!w || !h || (w === st.w && h === st.h)) return;
-      st.w = w; st.h = h; cv.width = Math.round(w * d); cv.height = Math.round(h * d);
-      st.ctx.setTransform(d, 0, 0, d, 0, 0);
-      setup(st);
-      st.draw(st, now(), 0, reduced);
-      cv.classList.add('fx-cv-on');
+      var w = Math.round(e.contentRect.width), h = Math.round(e.contentRect.height);
+      if (!w || !h || (w === st.nw && h === st.nh)) return;
+      st.nw = w; st.nh = h;
+      // el dibujo completo (miles de celdas en grid) va en su propia tarea y no dentro del cuadro que corre este
+      // observador: asi no alarga la tarea de diagramacion del arranque. El bucle no dibuja hasta entonces (st.w)
+      if (!st.cz) st.cz = setTimeout(function () {
+        var d = Math.min(W.devicePixelRatio || 1, 1.5);
+        st.cz = 0; st.w = st.nw; st.h = st.nh; cv.width = Math.round(st.w * d); cv.height = Math.round(st.h * d);
+        st.ctx.setTransform(d, 0, 0, d, 0, 0);
+        setup(st);
+        st.draw(st, now(), 0, reduced);
+        cv.classList.add('fx-cv-on');
+      }, 0);
     });
   }
   C.stars = {
@@ -590,16 +596,14 @@ document.documentElement.classList.add('fx');
     if (st.full) {
       st.full = 0;
       x.clearRect(0, 0, st.w, st.h);
-      for (k = 1; k < 6; k++) {
-        x.fillStyle = g.cs[k];
-        for (i = 0; i < g.n; i++) if (g.lv[i] === k) x.fillRect((i % g.cols) * g.step, (i / g.cols | 0) * g.step, g.cell, g.cell);
-      }
+      gridFill(st, g, 0, g.tk = (g.tk || 0) + 1);
       return;
     }
     // cada cuadrado cambia con probabilidad 0,35 por segundo; solo se repintan los que cambian
     var m = Math.round(g.n * 0.35 * dt / 1000);
     for (j = 0; j < m; j++) {
       i = Math.random() * g.n | 0;
+      if (i >= g.a) continue; // el dibujo completo todavia no llego a esa celda
       k = Math.random() < 0.55 ? 0 : 1 + (Math.random() * 5 | 0);
       if (k === g.lv[i]) continue;
       g.lv[i] = k;
@@ -607,6 +611,21 @@ document.documentElement.classList.add('fx');
       x.clearRect(px, py, g.cell, g.cell);
       if (k) { x.fillStyle = k === 5 && Math.random() < 0.03 ? g.ok : g.cs[k]; x.fillRect(px, py, g.cell, g.cell); }
     }
+  }
+
+  // dibujo completo en tramos de ~6 ms: con miles de celdas, en un celular lento seria una tarea larga
+  function gridFill(st, g, a, tk) {
+    var x = st.ctx, t0 = now(), b, i, k;
+    while (a < g.n && now() - t0 < 6) {
+      b = Math.min(g.n, a + 500);
+      for (k = 1; k < 6; k++) {
+        x.fillStyle = g.cs[k];
+        for (i = a; i < b; i++) if (g.lv[i] === k) x.fillRect((i % g.cols) * g.step, (i / g.cols | 0) * g.step, g.cell, g.cell);
+      }
+      a = b;
+    }
+    g.a = a;
+    if (a < g.n) setTimeout(function () { if (st.g === g && g.tk === tk) gridFill(st, g, a, tk); }, 0);
   }
 
   // ---------- beams: curvas finas con un cometa cobre que sale hacia afuera (solo CSS) ----------

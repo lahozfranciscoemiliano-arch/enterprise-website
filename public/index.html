@@ -13,7 +13,7 @@
 <meta property="og:title" content="Enterprise SOC: te enteras antes de que llame el usuario">
 <meta property="og:description" content="Servidores, backups, internet y firewalls Fortinet de todas tus sedes, vigilados de día y de noche desde una sola pantalla. Te avisa con los pasos para resolverlo.">
 <meta property="og:url" content="https://enterprisesoc.lat/">
-<meta property="og:image" content="https://enterprisesoc.lat/assets/img/og.jpg?v=15">
+<meta property="og:image" content="https://enterprisesoc.lat/assets/img/og.jpg?v=16">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -21,11 +21,11 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/familjen-grotesk.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/atkinson-next.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" as="image" href="/assets/img/hero-start.webp?v=15" media="(min-width: 1025px) and (pointer: fine) and (prefers-reduced-motion: no-preference), (min-width: 1025px) and (orientation: landscape) and (min-height: 560.02px) and (prefers-reduced-motion: no-preference)" fetchpriority="high">
+<link rel="preload" as="image" href="/assets/img/hero-start.webp?v=16" media="(min-width: 1025px) and (pointer: fine) and (prefers-reduced-motion: no-preference), (min-width: 1025px) and (orientation: landscape) and (min-height: 560.02px) and (prefers-reduced-motion: no-preference)" fetchpriority="high">
 <link rel="preload" as="image" href="/assets/img/hero-p-start-v16.webp?v=16" media="(orientation: portrait) and (max-width: 1024px) and (prefers-reduced-motion: no-preference), (orientation: portrait) and (pointer: coarse) and (prefers-reduced-motion: no-preference), (orientation: landscape) and (max-width: 720px) and (min-height: 560.02px) and (prefers-reduced-motion: no-preference)">
 <link rel="preload" as="image" href="/assets/img/hero-l-start-v16.webp?v=16" media="(orientation: landscape) and (max-height: 560px) and (max-width: 720px) and (prefers-reduced-motion: no-preference), (orientation: landscape) and (pointer: coarse) and (max-height: 560px) and (prefers-reduced-motion: no-preference)">
-<link rel="preload" as="script" href="/assets/js/geo-data.js?v=15" media="(min-width: 1025px) and (pointer: fine) and (prefers-reduced-motion: no-preference), (min-width: 1025px) and (orientation: landscape) and (min-height: 560.02px) and (prefers-reduced-motion: no-preference)">
-<link rel="preload" as="script" href="/assets/js/hero-scene.js?v=15" media="(min-width: 1025px) and (pointer: fine) and (prefers-reduced-motion: no-preference), (min-width: 1025px) and (orientation: landscape) and (min-height: 560.02px) and (prefers-reduced-motion: no-preference)">
+<link rel="preload" as="script" href="/assets/js/geo-data.js?v=16" media="(min-width: 1025px) and (pointer: fine) and (prefers-reduced-motion: no-preference), (min-width: 1025px) and (orientation: landscape) and (min-height: 560.02px) and (prefers-reduced-motion: no-preference)">
+<link rel="preload" as="script" href="/assets/js/hero-scene.js?v=16" media="(min-width: 1025px) and (pointer: fine) and (prefers-reduced-motion: no-preference), (min-width: 1025px) and (orientation: landscape) and (min-height: 560.02px) and (prefers-reduced-motion: no-preference)">
 <style>@font-face{font-family:'Familjen Grotesk';src:url('/assets/fonts/familjen-grotesk.woff2') format('woff2');font-weight:400 700;font-style:normal;font-display:swap}
 @font-face{font-family:'Atkinson Hyperlegible Next';src:url('/assets/fonts/atkinson-next.woff2') format('woff2');font-weight:200 800;font-style:normal;font-display:swap}
 @font-face{font-family:'Martian Mono';src:url('/assets/fonts/martian-mono.woff2') format('woff2');font-weight:100 800;font-style:normal;font-display:swap}
@@ -171,8 +171,8 @@ var(--canvas);animation:env-drift 96s var(--ease-in-out) -30s infinite alternate
 .hero{position:relative;background:#070D19}
 .stage{position:relative;height:100vh;height:100svh;min-height:640px;display:flex;flex-direction:column;overflow:hidden;background:#070D19;isolation:isolate}
 .hero-bg{position:absolute;inset:0;z-index:-3;background-color:#070D19;background-position:center;background-repeat:no-repeat;background-size:cover}
-html:not(.js) .hero-bg,.hero.scene-failed .hero-bg{background-image:url('/assets/img/hero-final.webp?v=15')}
-.hero.is-anim .hero-bg{background-image:url('/assets/img/hero-start.webp?v=15');background-size:auto 100%}
+html:not(.js) .hero-bg,.hero.scene-failed .hero-bg{background-image:url('/assets/img/hero-final.webp?v=16')}
+.hero.is-anim .hero-bg{background-image:url('/assets/img/hero-start.webp?v=16');background-size:auto 100%}
 .scene,.scene-overlay{position:absolute;inset:0;width:100%;height:100%;z-index:-2}
 .scene{transform:translateZ(0);opacity:0;transition:opacity 1.2s var(--ease-out)}
 .scene-overlay{opacity:0;transition:opacity 1.2s var(--ease-out)}
@@ -223,10 +223,10 @@ linear-gradient(0deg,rgba(5,9,18,.55) 0%,rgba(5,9,18,0) 20%)}
 .ev.crit::before{background:var(--crit);box-shadow:0 0 10px rgba(248,113,113,.6)}
 @keyframes tick{to{transform:translateX(-50%)}}
 @media (max-width: 720px), (orientation: portrait) and (max-width: 1024px), (orientation: portrait) and (pointer: coarse), (orientation: landscape) and (pointer: coarse) and (max-height: 560px), (prefers-reduced-motion: reduce){
-.hero .stage .hero-bg{background-image:url('/assets/img/hero-final.webp?v=15');background-size:cover}
+.hero .stage .hero-bg{background-image:url('/assets/img/hero-final.webp?v=16');background-size:cover}
 }
 @media (max-width: 720px), (orientation: portrait) and (max-width: 1024px), (orientation: portrait) and (pointer: coarse){
-.hero .stage .hero-bg{background-image:url('/assets/img/hero-final-portrait.webp?v=15');background-position:center top;background-size:100% auto}
+.hero .stage .hero-bg{background-image:url('/assets/img/hero-final-portrait.webp?v=16');background-position:center top;background-size:100% auto}
 .stage{height:auto;min-height:100vh;min-height:100svh}
 .hero-inner{align-items:flex-end;justify-content:flex-start;padding-top:calc(var(--nav-h) + 34vh)}
 .scrim{background:linear-gradient(180deg,rgba(5,9,18,.45) 0%,rgba(5,9,18,.04) 20%,rgba(5,9,18,.12) 36%,rgba(5,9,18,.86) 56%,rgba(5,9,18,.97) 100%)}
@@ -473,7 +473,7 @@ html:not(.sx){animation:sx-failsafe .01s linear 3s forwards}
 .cta-card .h2{font-size:clamp(36px,4.6vw,66px);max-width:16ch}
 .cta-card .kicker{color:var(--accent)}
 .cta-net{position:absolute;inset:0;pointer-events:none;opacity:.5;background:75% 40%/cover no-repeat;-webkit-mask-image:linear-gradient(90deg,transparent 30%,#000 100%);mask-image:linear-gradient(90deg,transparent 30%,#000 100%)}
-.live .cta-net{background-image:url('/assets/img/hero-bg.webp?v=15')}
+.live .cta-net{background-image:url('/assets/img/hero-bg.webp?v=16')}
 .cta-card>*:not(.cta-net){position:relative}
 .cta-actions{display:flex;align-items:center;gap:20px 28px;flex-wrap:wrap;margin-top:36px}
 .foot{background:var(--canvas);border-top:1px solid var(--line);padding:64px 0 44px;color:var(--text-secondary);font-size:14.5px}
@@ -490,7 +490,7 @@ html:not(.sx){animation:sx-failsafe .01s linear 3s forwards}
 .foot .fine{grid-column:1/-1;display:flex;justify-content:space-between;gap:12px 32px;flex-wrap:wrap;font-size:13px;margin-top:12px;padding-top:24px;border-top:1px solid var(--line);color:var(--text-muted)}
 .page-hero{position:relative;padding:calc(var(--nav-h) + clamp(80px,12vw,150px)) 0 clamp(64px,9vw,110px);overflow:hidden;border-bottom:1px solid var(--line);background:var(--canvas);isolation:isolate}
 .page-hero-bg{position:absolute;inset:0;z-index:-1;overflow:hidden}
-.page-hero-bg::before{content:"";position:absolute;inset:-6%;background:url('/assets/img/hero-bg.webp?v=15') 30% 50%/cover no-repeat;opacity:.55;animation:kenburns 42s var(--ease-in-out) -8s infinite alternate}
+.page-hero-bg::before{content:"";position:absolute;inset:-6%;background:url('/assets/img/hero-bg.webp?v=16') 30% 50%/cover no-repeat;opacity:.55;animation:kenburns 42s var(--ease-in-out) -8s infinite alternate}
 .page-hero-bg::after{content:"";position:absolute;inset:0;background:radial-gradient(38% 60% at 90% 12%,rgba(194,99,45,.22),transparent 70%),radial-gradient(34% 50% at 72% 100%,rgba(135,63,28,.2),transparent 70%),linear-gradient(90deg,rgba(15,23,42,.97) 0%,rgba(15,23,42,.86) 45%,rgba(15,23,42,.5) 100%),linear-gradient(0deg,#0F172A 0%,rgba(15,23,42,0) 40%)}
 @media (max-width:720px){.page-hero-bg::before{display:none}}
 @keyframes kenburns{from{transform:scale(1) translate3d(0,0,0)}to{transform:scale(1.08) translate3d(-2%,1%,0)}}
@@ -1156,57 +1156,6 @@ html.vlock{overflow:hidden;padding-right:var(--vsb,0)}
 .vspin,.is-wait .vplay::after{animation:none;border-color:#E07B3A #fff3}
 }
 @media (forced-colors:active){.vplay::before,.vch i{background:CanvasText}}
-.como .page-hero-bg{--fx-mask:radial-gradient(60% 90% at 86% 24%,#000 6%,transparent 72%)}
-.como .timeline:has(>.fx-tr:not([hidden]))::before{display:none}
-@media (max-width:900px){
-.como .timeline{grid-template-columns:minmax(0,1fr);row-gap:30px}
-.como .timeline li{max-width:640px;padding:5px 0 0 56px}
-.como .timeline::before{display:block;left:18px;right:auto;top:18px;bottom:0;width:1px;height:auto;background:linear-gradient(180deg,var(--accent),var(--line-strong) 70%,transparent)}
-}
-.como .needs em{display:inline-block;padding:2px 8px;border:1px solid var(--line-strong);border-radius:99px;line-height:1.5;vertical-align:2px}
-.como .msp-list li{gap:4px 16px;overflow-wrap:normal}
-.como .msp-list .host{position:relative;min-width:0;padding-left:20px}
-.como .msp-list .dot{position:absolute;left:0;top:calc(.8em - 4px)}
-.como .faq-tour{margin-top:26px}
-.demo-page .demo-wrap{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center}
-.demo-page .dm-bg{position:absolute;left:0;right:0;top:0;height:min(100%,max(560px,56vw));z-index:1;pointer-events:none;--fx-mask:radial-gradient(60% 75% at 24% 34%,#000 10%,transparent 75%)}
-@media (max-width:900px){.demo-page .dm-bg{--fx-mask:radial-gradient(90% 70% at 30% 36%,#000 10%,transparent 78%)}}
-@media (min-width:901px){
-.demo-page .demo-grid{grid-template-rows:auto auto 1fr;row-gap:28px}
-.demo-page .demo-copy{grid-column:1;grid-row:1}
-.demo-page .demo-grid>.form{grid-column:2;grid-row:1/span 2}
-.demo-page .demo-grid>.next{grid-column:1;grid-row:2/span 2}
-.demo-page .dm-tour{grid-column:2;grid-row:3;align-self:start}
-}
-@media (max-width:900px){
-.demo-page .demo-grid>.next{order:2;margin-top:44px}
-.demo-page .dm-tour{order:3;margin-top:40px}
-}
-.demo-page .next li>div{flex:1 1 auto;min-width:0;container:dmstep/inline-size}
-.demo-page .dm-prev{display:grid;grid-template-columns:minmax(0,260px);gap:12px;margin-top:16px}
-.demo-page .dm-prev figcaption{font-size:14px;line-height:1.5;color:var(--text-secondary);max-width:40ch}
-.demo-page .next .vbadge{color:#F8FAFC}
-.demo-page .dm-prev .vpreview-m{box-shadow:0 30px 70px -36px #000}
-.demo-page .dm-prev .vpreview-btn::after{top:12px;right:12px;bottom:auto;left:auto}
-@container dmstep (min-width:400px){
-.demo-page .dm-prev{grid-template-columns:minmax(0,min(300px,56%)) minmax(0,1fr);gap:18px;align-items:end}
-}
-@media (min-width:1800px){
-@container dmstep (min-width:400px){.demo-page .dm-prev{grid-template-columns:minmax(0,min(340px,58%)) minmax(0,1fr)}}
-.demo-page .dm-prev figcaption{font-size:15px}
-}
-@media (orientation:landscape) and (max-height:560px){
-.demo-page .dm-prev{grid-template-columns:minmax(0,220px) minmax(0,1fr);align-items:end;gap:18px}
-}
-.demo-page .dm-tour{box-shadow:0 40px 90px -40px #000,0 0 0 1px rgba(148,163,184,.12)}
-.demo-page .form .btn.primary:not(.small)::before{animation-delay:4.6s}
-.demo-page .form:focus-within>.fx-bb{visibility:hidden}
-@media (prefers-reduced-motion:no-preference){
-.demo-page .form .btn.primary:not(.small):hover::before{animation:fx-spin 2.2s linear infinite;opacity:1}
-.demo-page .form:valid .btn.primary::before{animation:dm-shim 4.4s linear .2s both}
-.demo-page .form:valid .btn.primary:hover::before{animation:fx-spin 2.2s linear infinite;opacity:1}
-}
-@keyframes dm-shim{0%{opacity:0;--fx-a:0deg}12%,85%{opacity:1}to{opacity:0;--fx-a:720deg}}
 @media (max-width:640px){
 .home .ticker-label{display:flex;padding-right:40px;font-size:12px;letter-spacing:.12em;background:linear-gradient(90deg,rgba(9,15,28,1) 0,rgba(9,15,28,1) calc(100% - 32px),rgba(9,15,28,0) 100%)}
 .home .ticker-label .tl-live{display:none}
@@ -1221,148 +1170,7 @@ html.vlock{overflow:hidden;padding-right:var(--vsb,0)}
 @media (min-width:1800px){.home #pantalla{--h:1518px}}
 @media (max-width:1100px){.home #pantalla{--h:1158px}}
 @media (max-width:900px){.home #pantalla{--h:988px}}
-@media (max-width:640px){.home #pantalla{--h:888px}}
-.privacidad .page-hero-bg{--fx-mask:radial-gradient(55% 95% at 90% 16%,#000 6%,transparent 70%)}
-@media (max-width:640px){
-.privacidad .page-hero-bg{--fx-mask:radial-gradient(85% 55% at 100% 0%,#000 4%,transparent 72%)}
-}
-html.fx .privacidad .prose>h2{position:relative}
-html.fx .privacidad .prose>h2::before{content:"";position:absolute;left:calc(-1 * clamp(10px,var(--gutter) - 8px,28px));top:.54em;width:9px;height:9px;margin:-4.5px 0 0 -4px;border-radius:50%;border:1px solid var(--line-strong);background:var(--canvas);pointer-events:none;transition:background .4s var(--ease-out),border-color .4s var(--ease-out),box-shadow .4s var(--ease-out)}
-html.fx .privacidad .prose>h2.fx-lit::before{border-color:var(--accent);background:var(--accent);box-shadow:0 0 0 4px var(--accent-tint)}
-@media (prefers-reduced-motion:reduce){html.fx .privacidad .prose>h2::before{transition:none}}
-.notfound .page-hero-bg>.fx-cv{-webkit-mask-image:radial-gradient(120% 95% at 82% 22%,#000 22%,rgba(0,0,0,.35) 62%,transparent 96%);mask-image:radial-gradient(120% 95% at 82% 22%,#000 22%,rgba(0,0,0,.35) 62%,transparent 96%)}
-.producto .pr-thumb{display:none}
-.producto .pr-chip{color:#F8FAFC}
-@media (min-width:1101px){
-.producto .pr-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,clamp(360px,33vw,560px));column-gap:clamp(40px,5vw,88px);align-items:center}
-.producto .pr-hero>*{grid-column:1}
-.producto .pr-hero>.pr-thumb{display:block;grid-column:2;grid-row:1/span 4;box-shadow:0 40px 90px -40px #000,0 0 0 1px rgba(148,163,184,.12)}
-.producto .pr-chip{display:none}
-}
-.producto .page-hero-bg{--fx-mask:radial-gradient(62% 90% at 84% 26%,#000 6%,transparent 72%)}
-.producto #recorrido .shots{overflow:hidden}
-.producto #recorrido .shot{--z:1.25;--cx:.5;--cy:.5;--tx:clamp(calc((1 - var(--z)) * 100%),calc((.5 - var(--z) * var(--cx)) * 100%),0%);--ty:clamp(calc((1 - var(--z)) * 100%),calc((.5 - var(--z) * var(--cy)) * 100%),0%)}
-.producto #recorrido .shot img{transform-origin:0 0}
-.producto #recorrido .shot[data-shot="0"]{--cx:.21;--cy:.45}
-.producto #recorrido .shot[data-shot="1"]{--cx:.35;--cy:.18}
-.producto #recorrido .shot[data-shot="2"]{--cx:.3;--cy:.58}
-.producto #recorrido .shot[data-shot="3"]{--cx:.18;--cy:.56}
-.producto #recorrido .shot[data-shot="4"]{--cx:.29;--cy:.52}
-.producto #recorrido .shot[data-shot="5"]{--cx:.16;--cy:.48}
-.producto #recorrido .shot[data-shot="6"]{--cx:.12;--cy:.41}
-.producto #recorrido .shot[data-shot="7"]{--cx:.39;--cy:.5}
-@media (max-width:900px){.producto #recorrido .shot{--z:1.5}}
-@media (prefers-reduced-motion:no-preference){
-.sx .producto #recorrido.live .shot.on img{animation:pr-cam-in 1.7s var(--ease-in-out) .55s both}
-.sx .producto #recorrido .shot:not(.on) img{animation:pr-cam-out .6s var(--ease-out) both}
-}
-@keyframes pr-cam-in{from{transform:none}to{transform:translate(var(--tx),var(--ty)) scale(var(--z))}}
-@keyframes pr-cam-out{from{transform:translate(var(--tx),var(--ty)) scale(var(--z))}to{transform:none}}
-.producto .topo-m{display:grid;gap:14px;max-width:460px;width:100%;margin-inline:auto}
-.producto .tm-n{position:relative;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;margin:0;padding:10px 14px;border:1.2px solid rgba(148,163,184,.4);border-radius:10px;background:rgba(30,41,59,.9);line-height:1.3}
-.producto .tm-n.ok{border-color:rgba(52,211,153,.6)}
-.producto .tm-n.bad{padding-top:16px;border-color:var(--amber-dot);background:rgba(120,53,15,.35)}
-.producto .tm-n b{font-family:var(--f-display);font-weight:600;font-size:16px;color:#F8FAFC}
-.producto .tm-n small{font-family:var(--f-mono);font-size:12.5px;color:#94A3B8}
-.producto .tm-n.bad small{color:#FBBF24}
-.producto .tm-badge{position:absolute;right:10px;top:0;transform:translateY(-50%);padding:4px 7px;border-radius:5px;background:#FBBF24;color:#1C1917;font:500 12px/1 var(--f-mono);letter-spacing:.05em;white-space:nowrap}
-.producto .topo-m>.tm-n+.tm-n::before{content:"";position:absolute;left:21px;top:-15.2px;width:1.4px;height:14px;background:rgba(148,163,184,.55)}
-.producto .tm-kids{list-style:none;margin:0 0 0 22px;padding:0 0 0 24px;display:grid;gap:12px}
-.producto .tm-kids>li::before{content:"";position:absolute;left:-25.2px;top:-13.2px;width:24px;height:calc(50% + 13.2px);border:solid rgba(148,163,184,.55);border-width:0 0 1.4px 1.4px}
-.producto .tm-kids>li:not(:last-child)::after{content:"";position:absolute;left:-25.2px;top:50%;bottom:-13.2px;border-left:1.4px solid rgba(148,163,184,.55)}
-.producto .tm-kids>li.tm-why{position:relative;padding:0 0 0 30px;font-family:var(--f-mono);font-size:12.5px;line-height:1.4;color:#FBBF24}
-.producto .tm-kids>li.tm-why::before{left:-24px;top:-12px;height:auto;bottom:-12px;width:0;border-width:0 0 0 1.4px}
-.producto .tm-kids>li.tm-why::after{left:15px;top:-12px;bottom:-12px;border-left:1.4px dashed var(--amber-dot)}
-@media (prefers-reduced-motion:no-preference){
-.producto #red.live .tm-n.bad{animation:pr-ping 2.6s var(--ease-out) .8s 3}
-}
-@keyframes pr-ping{from{box-shadow:0 0 0 0 rgba(245,158,11,.55)}to{box-shadow:0 0 0 16px rgba(245,158,11,0)}}
-@media (max-width:640px){
-.producto .netguard{padding:28px 20px}
-}
-.producto .rm-flow{margin:0;padding:clamp(20px,2.6vw,30px) clamp(16px,2.2vw,26px);border:1px solid var(--line);border-radius:22px;background:var(--surface);box-shadow:var(--shadow)}
-.producto .rm-flow .fx-graph{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr);gap:clamp(26px,3vw,44px)}
-.producto .rm-flow .fx-node{padding:14px 10px;text-align:center}
-.producto .rm-flow .fx-node b{font-size:16px;letter-spacing:.03em}
-.producto .rm-wall{position:relative;padding:10px 8px 8px;border:1.6px dashed var(--crit);border-radius:16px}
-.producto .rm-wl{display:block;margin:0 0 10px;text-align:center;font:500 12px/1.35 var(--f-mono);letter-spacing:.1em;color:var(--crit-text)}
-.producto .rm-flow figcaption{margin:22px auto 0;max-width:46ch;text-align:center;color:var(--text-secondary);font-size:15px;line-height:1.5}
-@media (max-width:640px),(min-width:901px) and (max-width:1100px){
-.producto .rm-flow .fx-graph{grid-template-columns:minmax(0,1fr);gap:46px}
-.producto .rm-flow .fx-col{grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);justify-items:center}
-.producto .rm-flow .fx-node,.producto .rm-wall{width:min(100%,300px)}
-.producto .rm-wall .fx-node{width:100%}
-}
-.producto .av-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:28px;margin-top:44px}
-.producto .av-grid .channels{margin:0}
-.producto .av-feed{width:100%;max-width:560px;margin-inline:auto;padding:16px;border:1px solid rgba(148,163,184,.2);border-radius:22px;background:radial-gradient(60% 80% at 100% 0%,rgba(194,99,45,.16),transparent 65%),linear-gradient(180deg,#16213A,#0F172A);box-shadow:var(--shadow-lg);color:var(--text-primary)}
-.producto .av-bar{display:flex;align-items:center;gap:10px;margin:0 0 12px;padding:2px 4px 12px;border-bottom:1px solid var(--line);font-family:var(--f-mono);font-size:12px;color:var(--text-muted)}
-.producto .av-bar .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
-.producto .av-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
-.producto .av-list>li{display:grid;gap:3px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(30,41,59,.72)}
-.producto .av-list .ch{font-family:var(--f-mono);font-size:12px;line-height:1.3;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
-.producto .av-list b{font-family:var(--f-display);font-weight:600;font-size:16px;line-height:1.3}
-.producto .av-list b+span{font-size:14.5px;line-height:1.45;color:var(--text-secondary)}
-@media (min-width:901px){
-.producto .av-grid{grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:clamp(24px,4vw,56px);align-items:start}
-.producto .av-feed{max-width:none}
-.producto #avisos .channels{grid-template-columns:minmax(0,1fr);gap:10px}
-.producto #avisos .channels li{display:grid;grid-template-columns:24px minmax(0,1fr);column-gap:16px;align-items:center;padding:14px 18px;text-align:left}
-.producto #avisos .channels svg{grid-row:span 2;margin:0}
-.producto #avisos .channels b{margin-top:0}
-}
-@keyframes seg-dash{from{stroke-dashoffset:calc(1.68px + var(--o,0) * 1px)}to{stroke-dashoffset:calc(var(--o,0) * 1px)}}
-.seguridad .fx-bm-t,.seguridad .fx-bm-h{animation-name:seg-dash}
-.seguridad .page-hero-bg>.fx-beams{-webkit-mask-image:linear-gradient(90deg,rgba(0,0,0,.16) 46%,#000 74%);mask-image:linear-gradient(90deg,rgba(0,0,0,.16) 46%,#000 74%)}
-@media (max-width:900px){
-.seguridad .page-hero-bg>.fx-beams{-webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.2) 62%,#000 94%);mask-image:linear-gradient(180deg,rgba(0,0,0,.2) 62%,#000 94%)}
-}
-.seguridad #flujo .flow{margin:44px 0 0;padding:clamp(20px,3vw,40px)}
-.seguridad #flujo .fx-graph{grid-template-columns:minmax(0,1.12fr) minmax(0,1fr) minmax(0,1fr);gap:clamp(40px,6.4vw,104px)}
-.seguridad #flujo .fx-col{gap:20px}
-.seguridad .fl-zone{padding:14px 14px 16px;border:1px dashed rgba(100,116,139,.45);border-radius:20px}
-.seguridad .fl-zl{font-family:var(--f-mono);font-size:12px;letter-spacing:.18em;color:var(--text-muted);padding:0 4px}
-.seguridad .fl-note{margin-top:4px;padding:0 4px;font-family:var(--f-mono);font-size:12px;line-height:1.45;color:var(--accent)}
-.seguridad .fl-pair{display:grid;gap:16px;margin-top:16px}
-.seguridad #flujo .fx-node small{overflow-wrap:normal}
-.seguridad #flujo .fx-node.hub small+small{margin-top:2px}
-@media (min-width:1800px){
-.seguridad #flujo .fx-node b{font-size:19px}
-.seguridad #flujo .fx-node small,.seguridad .fl-zl,.seguridad .fl-note{font-size:13px}
-}
-@media (max-width:1100px){
-.seguridad #flujo .fx-graph{grid-template-columns:minmax(0,1fr) minmax(0,1.22fr) minmax(0,1fr)}
-}
-@media (max-width:900px){
-.seguridad #flujo .fx-node{padding:14px 12px}
-.seguridad #flujo .fx-node b{font-size:16px}
-}
-@media (max-width:640px){
-.seguridad #flujo .flow{margin-top:36px;padding:14px}
-.seguridad #flujo .fx-graph{grid-template-columns:minmax(0,1fr);gap:46px}
-.seguridad #flujo .fx-col{gap:10px}
-.seguridad .fl-zone{padding:12px 10px 10px}
-.seguridad .fl-pair{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
-.seguridad #flujo .fx-node{padding:12px 10px}
-.seguridad #flujo .fx-node b{font-size:15.5px}
-.seguridad #flujo .fx-node.hub{padding:16px 12px}
-}
-@media (max-width:640px),(orientation:landscape) and (max-height:560px){
-html.fx .seguridad #ficha .fx-tl:not(.fx-on){opacity:1;transform:none}
-}
-@supports (animation-timeline:view()){
-@media (prefers-reduced-motion:no-preference) and (max-width:640px),(prefers-reduced-motion:no-preference) and (orientation:landscape) and (max-height:560px){
-.seguridad #ficha .spec li{animation:seg-line linear both;animation-timeline:view();animation-range:entry 0% entry 100%}
-}
-}
-@keyframes seg-line{from{opacity:0;transform:translateY(8px)}}
-.seguridad .timeline:has(>.fx-tr:not([hidden]))::before{display:none}
-@media (max-width:900px){
-.seguridad .timeline{grid-template-columns:minmax(0,1fr);row-gap:30px}
-.seguridad .timeline li{max-width:640px;padding:5px 0 0 56px}
-.seguridad .timeline::before{display:block;left:18px;right:auto;top:18px;bottom:0;width:1px;height:auto;background:linear-gradient(180deg,var(--accent),var(--line-strong) 70%,transparent)}
-}
-.seguridad #auditoria .shots{overflow:hidden;border-radius:0 0 15px 15px}</style>
+@media (max-width:640px){.home #pantalla{--h:888px}}</style>
 <script>(function(){var d=document.documentElement,v,m=/[?&]h=([abc])(?:&|$)/.exec(location.search);try{v=m?m[1]:localStorage.getItem('es-h')}catch(e){}if(!/^[abc]$/.test(v||''))v='abc'.charAt(Math.floor(Math.random()*3));try{localStorage.setItem('es-h',v)}catch(e){}d.setAttribute('data-h',v);d.classList.add('js')})();</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://enterprisesoc.lat/#org","name":"Enterprise SOC","url":"https://enterprisesoc.lat/","logo":"https://enterprisesoc.lat/apple-touch-icon.png","email":"contacto@enterprisesoc.lat","areaServed":"AR","founder":{"@type":"Person","name":"Francisco E. Lahoz F."}},{"@type":"WebSite","@id":"https://enterprisesoc.lat/#web","name":"Enterprise SOC","url":"https://enterprisesoc.lat/","inLanguage":"es","publisher":{"@id":"https://enterprisesoc.lat/#org"}},{"@type":"SoftwareApplication","name":"Enterprise SOC","applicationCategory":"SecurityApplication","operatingSystem":"Windows Server","description":"Monitoreo NOC/SOC alojado para empresas con sedes: servidores, backups, internet, Fortinet y seguridad en una sola pantalla.","publisher":{"@id":"https://enterprisesoc.lat/#org"}}]}</script>
 </head>
@@ -1382,7 +1190,7 @@ html.fx .seguridad #ficha .fx-tl:not(.fx-on){opacity:1;transform:none}
   <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Abrir menú"><span></span><span></span></button>
 </nav>
 <main id="main" tabindex="-1">
-<section class="hero" id="top" aria-labelledby="hero-title" data-scene="[&quot;/assets/js/geo-data.js?v=15&quot;,&quot;/assets/js/hero-scene.js?v=15&quot;]">
+<section class="hero" id="top" aria-labelledby="hero-title" data-scene="[&quot;/assets/js/geo-data.js?v=16&quot;,&quot;/assets/js/hero-scene.js?v=16&quot;]">
   <div class="stage">
     <div class="hero-bg" aria-hidden="true"></div>
     <canvas class="scene" aria-hidden="true"></canvas>
@@ -1457,7 +1265,7 @@ html.fx .seguridad #ficha .fx-tl:not(.fx-on){opacity:1;transform:none}
         </div>
         <div class="shots">
           <div class="shot on" id="shot-general" role="tabpanel" aria-labelledby="tab-general" data-caption="&lt;b&gt;General.&lt;/b&gt; La salud de cada servidor, los backups de anoche y las alertas abiertas, en una mirada.">
-            <img src="/assets/img/panel-general-1600.webp?v=15" srcset="/assets/img/panel-general-800.webp?v=15 800w, /assets/img/panel-general-1600.webp?v=15 1600w, /assets/img/panel-general-2400.webp?v=15 2400w" sizes="(max-width: 1240px) calc(100vw - 40px), 1200px" width="2400" height="1126" alt="Pantalla General: 12 servidores saludables, 11 de 12 backups exitosos, confiabilidad del 100% y una alerta abierta." loading="lazy" decoding="async">
+            <img src="/assets/img/panel-general-1600.webp?v=16" srcset="/assets/img/panel-general-800.webp?v=16 800w, /assets/img/panel-general-1600.webp?v=16 1600w, /assets/img/panel-general-2400.webp?v=16 2400w" sizes="(max-width: 1240px) calc(100vw - 40px), 1200px" width="2400" height="1126" alt="Pantalla General: 12 servidores saludables, 11 de 12 backups exitosos, confiabilidad del 100% y una alerta abierta." loading="lazy" decoding="async">
             <div class="pins" aria-hidden="true">
               <span class="pin" style="left:13.2%;top:54.3%"><i></i><span>Salud de cada servidor</span></span>
               <span class="pin left" style="left:55.7%;top:54.3%"><i></i><span>Backups de anoche</span></span>
@@ -1465,7 +1273,7 @@ html.fx .seguridad #ficha .fx-tl:not(.fx-on){opacity:1;transform:none}
             </div>
           </div>
           <div class="shot" id="shot-guardia" role="tabpanel" data-fx="camera" data-cam-auto data-cam="0.56 0.42 1.3" aria-labelledby="tab-guardia" hidden data-caption="&lt;b&gt;Guardia.&lt;/b&gt; Solo lo que necesita a una persona ahora, con los pasos para resolverlo.">
-            <img src="/assets/img/panel-guardia-1600.webp?v=15" srcset="/assets/img/panel-guardia-800.webp?v=15 800w, /assets/img/panel-guardia-1600.webp?v=15 1600w, /assets/img/panel-guardia-2400.webp?v=15 2400w" sizes="(max-width: 1240px) calc(100vw - 40px), 1200px" width="2400" height="1126" alt="Pantalla Guardia: una cosa requiere atención, 42 inicios de sesión fallidos en SRV-WEB01, con los pasos para resolverlo y los botones de ticket y remediación." loading="lazy" decoding="async">
+            <img src="/assets/img/panel-guardia-1600.webp?v=16" srcset="/assets/img/panel-guardia-800.webp?v=16 800w, /assets/img/panel-guardia-1600.webp?v=16 1600w, /assets/img/panel-guardia-2400.webp?v=16 2400w" sizes="(max-width: 1240px) calc(100vw - 40px), 1200px" width="2400" height="1126" alt="Pantalla Guardia: una cosa requiere atención, 42 inicios de sesión fallidos en SRV-WEB01, con los pasos para resolverlo y los botones de ticket y remediación." loading="lazy" decoding="async">
             <div class="pins" aria-hidden="true">
               <span class="pin" style="left:60%;top:28.5%"><i></i><span>Solo lo que necesita a alguien</span></span>
               <span class="pin" style="left:52.8%;top:59.7%"><i></i><span>Qué hacer, paso a paso</span></span>
@@ -1473,14 +1281,14 @@ html.fx .seguridad #ficha .fx-tl:not(.fx-on){opacity:1;transform:none}
             </div>
           </div>
           <div class="shot" id="shot-red" role="tabpanel" data-fx="camera" data-cam-auto data-cam="0.695 0.36 1.3" aria-labelledby="tab-red" hidden data-caption="&lt;b&gt;Red e Internet.&lt;/b&gt; Latencia, pérdida y enlace activo de cada sede, medidos desde adentro cada minuto.">
-            <img src="/assets/img/panel-red-1600.webp?v=15" srcset="/assets/img/panel-red-800.webp?v=15 800w, /assets/img/panel-red-1600.webp?v=15 1600w, /assets/img/panel-red-2400.webp?v=15 2400w" sizes="(max-width: 1240px) calc(100vw - 40px), 1200px" width="2400" height="1126" alt="Pantalla Red e Internet: 11 de 12 sitios con internet normal, uno con pérdida de paquetes y uno navegando por el enlace de respaldo." loading="lazy" decoding="async">
+            <img src="/assets/img/panel-red-1600.webp?v=16" srcset="/assets/img/panel-red-800.webp?v=16 800w, /assets/img/panel-red-1600.webp?v=16 1600w, /assets/img/panel-red-2400.webp?v=16 2400w" sizes="(max-width: 1240px) calc(100vw - 40px), 1200px" width="2400" height="1126" alt="Pantalla Red e Internet: 11 de 12 sitios con internet normal, uno con pérdida de paquetes y uno navegando por el enlace de respaldo." loading="lazy" decoding="async">
             <div class="pins" aria-hidden="true">
               <span class="box" style="left:2.56%;top:45.3%;width:30.4%;height:20.8%"></span>
               <span class="pin below" style="left:69.5%;top:35.7%"><i></i><span>Una sede salió por el respaldo</span></span>
             </div>
           </div>
           <div class="shot" id="shot-backups" role="tabpanel" data-fx="camera" data-cam-auto data-cam="0.8 0.58 1.3" aria-labelledby="tab-backups" hidden data-caption="&lt;b&gt;Backups.&lt;/b&gt; Cada corrida de cada servidor, con su resultado, su antigüedad y su tamaño.">
-            <img src="/assets/img/panel-backups-1600.webp?v=15" srcset="/assets/img/panel-backups-800.webp?v=15 800w, /assets/img/panel-backups-1600.webp?v=15 1600w, /assets/img/panel-backups-2400.webp?v=15 2400w" sizes="(max-width: 1240px) calc(100vw - 40px), 1200px" width="2400" height="1126" alt="Pantalla Backups: 1,3 TB respaldados, 92% de éxito y la lista de servidores con el resultado del backup de anoche." loading="lazy" decoding="async">
+            <img src="/assets/img/panel-backups-1600.webp?v=16" srcset="/assets/img/panel-backups-800.webp?v=16 800w, /assets/img/panel-backups-1600.webp?v=16 1600w, /assets/img/panel-backups-2400.webp?v=16 2400w" sizes="(max-width: 1240px) calc(100vw - 40px), 1200px" width="2400" height="1126" alt="Pantalla Backups: 1,3 TB respaldados, 92% de éxito y la lista de servidores con el resultado del backup de anoche." loading="lazy" decoding="async">
             <div class="pins" aria-hidden="true">
               <span class="pin" style="left:35%;top:31.2%"><i></i><span>Tasa de éxito</span></span>
               <span class="box" style="left:2.25%;top:55.9%;width:95.4%;height:4.7%"></span>
@@ -1488,7 +1296,7 @@ html.fx .seguridad #ficha .fx-tl:not(.fx-on){opacity:1;transform:none}
             </div>
           </div>
           <div class="shot" id="shot-fortinet" role="tabpanel" data-fx="camera" data-cam-auto data-cam="0.786 0.31 1.3" aria-labelledby="tab-fortinet" hidden data-caption="&lt;b&gt;Fortinet.&lt;/b&gt; Lo que frenaron tus FortiGate, ordenado por gravedad, junto a tus servidores.">
-            <img src="/assets/img/panel-fortinet-1600.webp?v=15" srcset="/assets/img/panel-fortinet-800.webp?v=15 800w, /assets/img/panel-fortinet-1600.webp?v=15 1600w, /assets/img/panel-fortinet-2400.webp?v=15 2400w" sizes="(max-width: 1240px) calc(100vw - 40px), 1200px" width="2400" height="1126" alt="Pantalla Fortinet: eventos de los FortiGate con ataques bloqueados por el IPS, accesos por VPN, virus detenidos y tráfico denegado." loading="lazy" decoding="async">
+            <img src="/assets/img/panel-fortinet-1600.webp?v=16" srcset="/assets/img/panel-fortinet-800.webp?v=16 800w, /assets/img/panel-fortinet-1600.webp?v=16 1600w, /assets/img/panel-fortinet-2400.webp?v=16 2400w" sizes="(max-width: 1240px) calc(100vw - 40px), 1200px" width="2400" height="1126" alt="Pantalla Fortinet: eventos de los FortiGate con ataques bloqueados por el IPS, accesos por VPN, virus detenidos y tráfico denegado." loading="lazy" decoding="async">
             <div class="pins" aria-hidden="true">
               <span class="pin below" style="left:78.6%;top:30.9%"><i></i><span>Eventos por gravedad</span></span>
               <span class="box" style="left:2.25%;top:41.7%;width:95.4%;height:4.3%"></span>
@@ -1757,8 +1565,8 @@ html.fx .seguridad #ficha .fx-tl:not(.fx-on){opacity:1;transform:none}
     <div class="fine"><span>Las capturas muestran datos de demostración de una empresa inventada.</span><span>© 2026 Enterprise SOC. Hecho en Argentina por Francisco E. Lahoz F.</span></div>
   </div>
 </footer>
-<script src="/assets/js/sections.js?v=15" defer></script>
-<script src="/assets/js/site.js?v=15" defer></script>
+<script src="/assets/js/sections.js?v=16" defer></script>
+<script src="/assets/js/site.js?v=16" defer></script>
 <script src="/assets/js/fx.js?v=16" defer></script>
 <script src="/assets/js/video.js?v=16" defer></script>
 </body>

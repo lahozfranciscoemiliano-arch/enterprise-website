@@ -1,3 +1,4 @@
+/* paginas: index.html (scripts/build.mjs lo copia solo en esas paginas) */
 /* ======================================================================
    Portada en celulares y tablets verticales (va despues de site.css y le gana).
    Escritorio y tablets acostadas siguen con la escena WebGL en vivo (site.css + site.js).

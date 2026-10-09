@@ -1,6 +1,6 @@
+/* paginas: producto.html (scripts/build.mjs lo copia solo en esas paginas) */
 /* Enterprise SOC: ajustes de producto.html, version 16.
-   Este archivo se copia en linea en TODAS las paginas (scripts/build.mjs): cada regla va
-   colgada de body.producto para no tocar las demas. Sin JS todo se ve; el movimiento
+   Las reglas van colgadas de body.producto. Sin JS todo se ve; el movimiento
    respeta prefers-reduced-motion (y site.css ya corta animaciones y transiciones ahi). */
 
 /* ---------- Cabecera: video del recorrido ----------

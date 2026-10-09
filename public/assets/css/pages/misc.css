@@ -1,6 +1,6 @@
+/* paginas: privacidad.html 404.html (scripts/build.mjs lo copia solo en esas paginas) */
 /* Enterprise SOC: ajustes de privacidad.html y 404.html, version 16.
-   Este archivo se copia en linea en TODAS las paginas (scripts/build.mjs): cada regla va
-   colgada de body.privacidad o body.notfound para no tocar las demas. Sin JS todo se ve; el
+   Las reglas van colgadas de body.privacidad o body.notfound. Sin JS todo se ve; el
    movimiento respeta prefers-reduced-motion (fx.js deja cada efecto en su estado final). */
 
 /* ---------- Privacidad: la grilla (fx grid) vive arriba a la derecha, lejos del titulo ---------- */

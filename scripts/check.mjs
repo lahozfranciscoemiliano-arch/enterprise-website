@@ -2,7 +2,8 @@
 //  1. Links y recursos internos (href, src, srcset, og:image, url() del CSS) que no existen.
 //  2. Scripts en linea cuyo hash no esta en el CSP del servidor (el navegador los bloquearia).
 //  3. Llaves privadas o archivos de llaves dentro de public/.
-//  4. Paginas cuyo CSS en linea no coincide con assets/css/site.css.
+//  4. Paginas cuyo CSS en linea no coincide con sus fuentes (scripts/build.mjs).
+//  5. Mas de una version de cache (?v=N) en el sitio.
 // Uso: node scripts/check.mjs [carpeta]   (por defecto public)
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -95,6 +96,18 @@ for (const f of todos) {
       if ((esInterna(u) || esRelativa(u)) && !existeRuta(u, rel)) err(rel, `no existe ${u}`);
     }
   }
+}
+
+// 5. Una sola version de cache (?v=N) en todo el sitio: si conviven dos, algun archivo quedo viejo.
+{
+  const versiones = new Map();
+  for (const f of todos) {
+    if (!['.html', '.css', '.js'].includes(extname(f).toLowerCase())) continue;
+    for (const m of readFileSync(f, 'utf8').matchAll(/\?v=(\d+)/g)) {
+      if (!versiones.has(m[1])) versiones.set(m[1], relative(ROOT, f).split('\\').join('/'));
+    }
+  }
+  if (versiones.size > 1) err('?v=', `hay varias versiones de cache: ${[...versiones].map(([v, f]) => `v=${v} (ej. ${f})`).join(', ')}`);
 }
 
 // 4. El CSS en linea de cada pagina tiene que ser el de assets/css/site.css (ver scripts/build.mjs).

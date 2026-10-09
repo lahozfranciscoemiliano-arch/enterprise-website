@@ -1,6 +1,6 @@
+/* paginas: seguridad.html (scripts/build.mjs lo copia solo en esas paginas) */
 /* Enterprise SOC: ajustes de seguridad.html, version 16.
-   Este archivo se copia en linea en TODAS las paginas (scripts/build.mjs): cada regla va
-   colgada de body.seguridad para no tocar las demas. Sin JS todo se ve; el movimiento respeta
+   Las reglas van colgadas de body.seguridad. Sin JS todo se ve; el movimiento respeta
    prefers-reduced-motion (fx.js deja cada efecto en su estado final). */
 
 /* ---------- Cabecera: haces finos que salen de la red hacia afuera (fx beams) ----------
