@@ -6,8 +6,13 @@ Sitio de [enterprisesoc.lat](https://enterprisesoc.lat). Cada cambio que llega a
 
 | Ruta | Qué es |
 |---|---|
-| `public/` | El sitio tal como se sirve: páginas, `assets/` (CSS, JS, fuentes, imágenes) y `contact.php`. Es lo único que se sube al hosting. |
-| `scripts/check.mjs` | Revisión previa: links y recursos internos que no existen, hash CSP del script en línea y llaves commiteadas por error. |
+| `public/` | El sitio tal como se sirve: páginas, `assets/` (CSS, JS, fuentes, imágenes, videos) y `contact.php`. Es lo único que se sube al hosting. |
+| `public/assets/css/` | Fuentes del CSS: `site.css` (base y responsive), `hero.css` (portada), `fx.css` (animaciones), `video.css` (reproductores) y `pages/*.css` (ajustes de cada página). Las páginas no cargan estos archivos: el build los copia dentro de cada página. |
+| `public/assets/js/fx.js` | Animaciones del sitio, activadas con atributos `data-fx="…"` en el HTML. Inspiradas en componentes de [21st.dev](https://21st.dev), escritas desde cero (ver `assets/CREDITOS.txt`). |
+| `public/assets/js/video.js` | Reproductor del recorrido (ventana con capítulos) y vista previa de /demo. |
+| `public/assets/video/` | Intro 3D de la portada para celulares, recorrido del panel (40 s, con capítulos en `tour.es.vtt`) y adelanto de /demo. Cada uno en AV1 y en H.264 (Safari). Hechos con la escena 3D y las capturas reales del panel, con datos de demostración. |
+| `scripts/build.mjs` | Copia el CSS de `assets/css/` dentro del `<style>` de cada página. Correrlo después de editar cualquier `.css`. |
+| `scripts/check.mjs` | Revisión previa: links y recursos internos que no existen, hash CSP del script en línea, CSS de las páginas al día y llaves commiteadas por error. |
 | `scripts/deploy.sh` | Subida por SFTP con `lftp`. Sube primero `assets/` y después las páginas. Nunca borra nada del servidor. |
 | `.github/workflows/check.yml` | Corre la revisión en cada pull request. |
 | `.github/workflows/deploy.yml` | En cada push a `main`: revisa, sube y verifica que lo publicado sea igual a `public/`. |
@@ -49,8 +54,11 @@ Para probar la configuración: **Actions → Publicar en el hosting → Run work
 
 - **`.htaccess` vive solo en el servidor.** Tiene el Content-Security-Policy y las cabeceras de seguridad que genera el build de tu PC. El deploy no lo toca. Si lo querés versionar, copiá el `.htaccess` que genera el build de tu PC a `public/.htaccess`: desde ese momento se sube con cada deploy y `check.mjs` lee el CSP de ahí.
 - **Script en línea de la portada (prueba A/B del título).** El CSP lo permite por su hash sha256. Si se modifica ese script, `check.mjs` falla hasta que el hash nuevo esté en el CSP del `.htaccess` del servidor y en `CSP_HASHES_SERVIDOR` de `scripts/check.mjs`. Sin ese cambio el navegador lo bloquearía.
-- **Caché.** CSS, JS e imágenes se piden con `?v=15`. Si cambia alguno, subí el número en todas las páginas y en `site.css`:
-  `grep -rl '?v=15' public | xargs sed -i 's/?v=15/?v=16/g'`
+- **CSS.** Se edita en `public/assets/css/` y después se corre `node scripts/build.mjs`, que lo copia dentro de las 7 páginas. Si te olvidás, `check.mjs` (y el workflow) falla avisando qué páginas quedaron viejas.
+- **Caché.** JS, imágenes y videos se piden con `?v=16`. Si cambia alguno, subí el número en todas las páginas y en los `.css`, y después corré el build:
+  `grep -rl '?v=16' public | xargs sed -i 's/?v=16/?v=17/g' && node scripts/build.mjs`
+- **Animaciones y accesibilidad.** Todo efecto respeta "reducir movimiento" del sistema (muestra el estado final), se pausa fuera de pantalla y con la pestaña oculta, y si el JavaScript falla el contenido aparece igual a los 3 segundos.
+- **Videos.** Se cargan recién después de la página, solo si se ven, sin "Ahorro de datos" y con movimiento permitido. El deploy verifica que el servidor los entregue como `video/mp4` y acepte pedidos por rango (los necesita el iPhone). Si avisa un tipo incorrecto, agregar en el `.htaccess` del servidor: `AddType video/mp4 .mp4` y `AddType text/vtt .vtt`.
 - **Formulario.** `contact.php` envía cada pedido de demo a `contacto@enterprisesoc.lat`. Para verificarlo sin mandar mails: un GET responde 405 y un POST incompleto responde 422.
 - **Origen de los archivos.** `public/` es la salida del build que estaba en la PC (`_site/build.mjs`). Desde ahora la fuente es este repositorio. Si se vuelve a generar el sitio en la PC, hay que copiar esa salida a `public/` antes de commitear, o el próximo deploy pisa los cambios hechos acá.
 - **Saltos de línea.** Los archivos de `public/` se guardan y se suben byte por byte, sin conversión de saltos de línea (ver `.gitattributes`).

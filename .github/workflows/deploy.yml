@@ -66,4 +66,15 @@ jobs:
           done
           code="$(curl -s -o /dev/null -w '%{http_code}' "$url/contact.php")"
           if [ "$code" = 405 ]; then echo "ok  /contact.php (GET 405)"; else echo "::error::/contact.php responde $code, se esperaba 405"; fallas=1; fi
+          # Videos: tienen que existir, aceptar pedidos por rango (iPhone los necesita) y salir con su tipo.
+          for f in public/assets/video/*; do
+            [ -e "$f" ] || continue
+            path="/${f#public/}"
+            case "$f" in *.mp4) tipo="video/mp4" ;; *.vtt) tipo="text/vtt" ;; *) continue ;; esac
+            res="$(curl -s -o /dev/null -r 0-1 -w '%{http_code} %{content_type}' "$url$path")"
+            code="${res%% *}"; ctype="${res#* }"
+            if [ "$code" != 206 ] && [ "$code" != 200 ]; then echo "::error::$path responde $code"; fallas=1; continue; fi
+            [ "$code" = 206 ] || echo "::warning::$path no acepta pedidos por rango (responde 200); en iPhone el video puede no reproducirse"
+            case "$ctype" in "$tipo"*) echo "ok  $path ($code, $ctype)" ;; *) echo "::warning::$path sale como '$ctype', se esperaba $tipo (agregar AddType en el .htaccess del servidor)" ;; esac
+          done
           exit "$fallas"
