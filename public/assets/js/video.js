@@ -354,7 +354,10 @@ document.documentElement.classList.add('vx');
 
   function pauseAll() { all.forEach((s) => { if (playing(s.v) || s.want) halt(s); }); }
 
-  D.addEventListener('visibilitychange', () => all.forEach((s) => { if (!D.hidden) resume(s); else if (playing(s.v)) halt(s, s.mode === 'click'); }));
+  D.addEventListener('visibilitychange', () => {
+    if (D.hidden && vid && !vid.paused) vid.pause(); // el recorrido no sigue solo en una pestana oculta
+    all.forEach((s) => { if (!D.hidden) resume(s); else if (playing(s.v)) halt(s, s.mode === 'click'); });
+  });
   // si pasa a movimiento reducido, lo que arranco el mouse se detiene
   RM.addEventListener('change', () => { if (RM.matches) all.forEach((s) => { if (s.mode === 'hover') halt(s); }); });
   // Posters diferidos (img[data-src] dentro de un componente de video): se piden despues de 'load'

@@ -195,7 +195,7 @@ linear-gradient(0deg,rgba(5,9,18,.55) 0%,rgba(5,9,18,0) 20%)}
 .hero-micro{margin-top:14px;font-size:14px;color:#CBD5E1}
 .hero-proof{margin-top:30px;display:flex;flex-direction:column;align-items:flex-start;gap:14px}
 .hero-proof .proof{background:rgba(9,16,30,.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);text-shadow:none;font-size:14.5px}
-.facts{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 18px;font-family:var(--f-mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:#CBD5E1}
+.facts{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 18px;font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#CBD5E1}
 .facts li{display:inline-flex;align-items:center;gap:8px}
 .facts li::before{content:"";width:5px;height:5px;border-radius:1px;background:var(--accent);transform:rotate(45deg)}
 .hv-b,.hv-c{display:none}
@@ -1237,7 +1237,7 @@ html.vlock{overflow:hidden;padding-right:var(--vsb,0)}
       </div>
     </div>
 
-    <div class="ticker" data-fx="marquee" data-mask="off" data-speed="50" data-pause-label="Pausar la cinta de eventos|Reanudar la cinta de eventos" aria-label="Ejemplo de eventos que vigila Enterprise SOC">
+    <div class="ticker" role="group" data-fx="marquee" data-mask="off" data-speed="50" data-pause-label="Pausar la cinta de eventos|Reanudar la cinta de eventos" aria-label="Ejemplo de eventos que vigila Enterprise SOC">
       <p class="ticker-label" aria-hidden="true"><i></i><span class="tl-live">EN VIVO · </span>DEMO</p>
       <div class="ticker-track">
         <span class="ev">SRV-SQL01 · CPU 30% · OK</span><span class="ev">Backup de anoche · 11 de 12 OK</span><span class="ev warn">SUC-COSTA-01 · backup con advertencias</span><span class="ev warn">SUC-SUR-01 · navega por el enlace de respaldo</span><span class="ev">FGT-CENTRAL · el IPS bloqueó un ataque</span><span class="ev warn">SRV-FILE01 · C: se llena en 9 días</span><span class="ev crit">SRV-WEB01 · 42 intentos fallidos · reconocida</span><span class="ev">Ticket #120 · resuelto en 40 min</span><span class="ev">Defender · archivo en cuarentena</span><span class="ev">RDP · SRV-ERP01 · sesión cerrada</span><span class="ev">Reporte diario en PDF · enviado</span>
@@ -1329,7 +1329,7 @@ html.vlock{overflow:hidden;padding-right:var(--vsb,0)}
       </div></div>
       <p class="shot-caption r" aria-live="polite"><b>General.</b> La salud de cada servidor, los backups de anoche y las alertas abiertas, en una mirada.</p>
       <p class="caption-note r">Datos de demostración</p>
-      <p class="tour r"><a class="vchip" href="/assets/video/tour-l.h264.mp4?v=16" data-video="dialog" data-fx="magnetic" aria-label="Ver el recorrido del panel en video, 40 segundos"
+      <p class="tour r"><a class="vchip" href="/assets/video/tour-l.h264.mp4?v=16" data-video="dialog" data-fx="magnetic" aria-label="Ver el recorrido 0:40, video de 40 segundos del panel"
         data-title="Recorrido por el panel"
         data-desc="Recorrido de 40 segundos por las 8 pantallas del panel con datos de demostración: monitoreo, detalle, backups, red, Fortinet, guardia, operaciones y administración."
         data-sources="/assets/video/tour-l.av1.mp4?v=16 av01.0.05M.08, /assets/video/tour-l.h264.mp4?v=16 avc1.640028"

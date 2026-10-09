@@ -457,6 +457,7 @@ document.documentElement.classList.add('sx');
         return;
       }
       btn.disabled = true;
+      let fallo = false;
       const label = btn.textContent;
       btn.textContent = 'Enviando…';
       try {
@@ -472,8 +473,13 @@ document.documentElement.classList.add('sx');
         form.scrollIntoView({ block: 'nearest', behavior: reduce.matches ? 'auto' : 'smooth' });
         done.focus({ preventScroll: true });
       } catch (_) {
+        fallo = true;
         showError('No pudimos enviar el formulario. Escríbenos a <a href="mailto:contacto@enterprisesoc.lat?subject=Quiero%20una%20demo%20de%20Enterprise%20SOC">contacto@enterprisesoc.lat</a> y coordinamos la demo.');
-      } finally { btn.disabled = false; btn.textContent = label; }
+      } finally {
+        btn.disabled = false; btn.textContent = label;
+        // el boton tenia el foco al deshabilitarse: se lo devolvemos para no dejarlo en <body>
+        if (fallo) btn.focus({ preventScroll: true });
+      }
     });
   }
 
